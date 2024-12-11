@@ -3,9 +3,11 @@ import Notasks from "../components/Notasks";
 
 const page = () => {
   return (
-    <div className="flex justify-center items-center h-full">
-      <Notasks />
-    </div>
+    <>
+      <div className="flex justify-center items-center h-full">
+        <Notasks />
+      </div>
+    </>
   );
 };
 

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { RiSearch2Line } from "react-icons/ri";
 import { BsPlus } from "react-icons/bs";
 import {
@@ -17,8 +17,43 @@ import { useAuthContext } from "@/app/(utilities)/utils/AuthUser";
 
 const page = () => {
   const { data } = useAuthContext();
+  const [teamPopUp, setTeamPopUp] = useState(false);
+  const [memberPopUp, setMemberPopUp] = useState(false);
+  const [teamName, setTeamName] = useState("");
+
+  console.log(data,"data")
   return (
     <>
+      {teamPopUp && (
+        <div className="fixed inset-0 flex z-40 justify-center items-center h-screen bg-black/60 backdrop:blur-md">
+          <div className="md:w-[30%] flex shadow-md flex-col gap-6 bg-white p-4 rounded-xl h-auto">
+            <div className="font-bold">Create Team</div>
+            <div className="flex flex-col">
+              <div className="font-semibold text-[#3A3D46] text-xs uppercase">Team name</div>
+              <div>
+                <input
+                  type="text"
+                  name="fullname"
+                  value={teamName}
+                  onChange={(e) => setTeamName(e.target.value)}
+                  className="w-full text-sm py-2 border-b border-gray-300 outline-none "
+                />
+              </div>
+            </div>
+            <div className="flex justify-center items-center font-medium gap-3 text-sm">
+              <button
+                onClick={() => setTeamPopUp(false)}
+                className="text-center p-2 px-4 rounded-lg w-full border "
+              >
+                Cancel
+              </button>
+              <button className="text-center p-2 px-4 rounded-lg text-white w-full bg-[#E48700]">
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="w-full h-full flex flex-col gap-6">
         {/* member list */}
         <div className="flex bg-white rounded-xl flex-col">
@@ -111,10 +146,10 @@ const page = () => {
                 <RiSearch2Line />
               </div>
               <div className="flex justify-center items-center gap-1">
-                <button className="flex justify-center items-center gap-1 text-white text-sm p-2 px-4 rounded-[10px] bg-[#FFC248]">
+                <button onClick={() => setTeamPopUp(true)} className="flex justify-center items-center gap-1 text-white text-sm p-2 px-4 rounded-[10px] bg-[#FFC248]">
                   <BsPlus className="text-xl" />
 
-                  <div>Add Members</div>
+                  <div>Create Team</div>
                 </button>
               </div>
             </div>

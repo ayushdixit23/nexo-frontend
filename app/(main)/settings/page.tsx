@@ -20,6 +20,7 @@ const page = () => {
     let timeoutId: any;
     try {
       Cookies.remove("token");
+      localStorage.removeItem("organisationId");
       timeoutId = setTimeout(() => {
         setAuth(false);
         setData(null);

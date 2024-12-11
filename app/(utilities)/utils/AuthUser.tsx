@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import { API } from "./config";
 
 interface AuthContextType {
-  data: UserData | null; // Change from 'string' to 'UserData | null'
+  data: UserData | null;
   auth: boolean;
   setAuth: React.Dispatch<React.SetStateAction<boolean>>;
   setData: React.Dispatch<React.SetStateAction<UserData | null>>;
@@ -38,6 +38,7 @@ interface UserData {
   fullname: string;
   profilepic: string;
   email: string;
+  organisationId: string;
 }
 
 export const AuthContextProvider = ({
@@ -72,7 +73,17 @@ export const AuthContextProvider = ({
       });
 
       if (res.data.success) {
-        setData(res.data.data);
+        const dataToPut = res.data.data;
+
+
+        // Retrieve the stored organisationId
+        const organisationId = localStorage.getItem("organisationId");
+
+        if (organisationId) {
+          dataToPut.organisationId = organisationId;
+        }
+
+        setData(dataToPut);
         setAuth(true);
       } else {
         deleteToken();

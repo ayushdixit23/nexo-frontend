@@ -10,6 +10,8 @@ import axios from "axios";
 import { API } from "@/app/(utilities)/utils/config";
 import toast from "react-hot-toast";
 import { useAuthContext } from "@/app/(utilities)/utils/AuthUser";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 interface UserState {
   fullname: string;
@@ -28,6 +30,7 @@ const page = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { setData } = useAuthContext();
+  const router = useRouter();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
@@ -53,11 +56,14 @@ const page = () => {
       const res = await axios.post(`${API}/register`, formData);
       if (res.data.success) {
         toast.success(res.data.message);
+        Cookies.set("token", res.data.token);
+        router.push("/action");
         setData(res.data.data);
       } else {
         toast.error(res.data.message || "Something went wrong!");
       }
     } catch (error) {
+      setIsLoading(false);
       if (axios.isAxiosError(error)) {
         if (error.response) {
           toast.error(error.response.data.message || "Something went wrong");
