@@ -30,7 +30,7 @@ const uploadFile = async ({
     });
 
     if (uploadResponse.status === 200) {
-      toast.success("File uploaded successfully!");
+     
       return true
     } else {
       toast.error(`File upload failed with status: ${uploadResponse.status}`);

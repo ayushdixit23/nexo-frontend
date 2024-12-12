@@ -7,12 +7,29 @@ import { CloudUpload } from "lucide-react";
 import axios from "axios";
 import { API } from "@/app/(utilities)/utils/config";
 import toast from "react-hot-toast";
-import { errorHandler } from "@/app/(utilities)/utils/helpers";
+import {
+  errorHandler,
+  formatDate,
+  truncatetext,
+} from "@/app/(utilities)/utils/helpers";
 import { RxCross2 } from "react-icons/rx";
 import { IoCloudUpload } from "react-icons/io5";
 import Image from "next/image";
 import uploadFile from "@/app/(utilities)/utils/uploadfile";
 import { useAuthContext } from "@/app/(utilities)/utils/AuthUser";
+
+interface Storage {
+  orgid: string | undefined;
+  userid: {
+    email: string | undefined;
+    fullname: string | undefined;
+    profilepic: string | undefined;
+  };
+  filename: string | undefined;
+  date: any;
+  type: string | undefined;
+  size: number;
+}
 
 function page() {
   const [file, setFile] = useState<File | null>(null);
@@ -20,11 +37,45 @@ function page() {
   const [progress, setProgress] = useState(0);
   const [uploadpop, setUploadPop] = useState(false);
   const { data } = useAuthContext();
-  const [storage, setStorage] = useState([]);
+  const [storage, setStorage] = useState<Storage[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState(""); // State for search term
+  const [filestorage, setFilestorage] = useState<number | null>(null);
+  const [filteredStorage, setFilteredStorage] = useState(storage); // State for filtered storage
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return; // Check if files is null or empty
     setFile(e.target.files[0]);
+  };
+
+  const convertFromBytes = (kilobytes: number) => {
+    if (kilobytes >= 1024 * 1024)
+      return (kilobytes / (1024 * 1024)).toFixed(2) + " GB";
+    if (kilobytes >= 1024) return (kilobytes / 1024).toFixed(2) + " MB";
+    if (kilobytes > 0) return kilobytes.toFixed(2) + " KB";
+    return "0 KB";
+  };
+
+  function convertSize(sizeInBytes: number) {
+    const sizeInKB = sizeInBytes / 1000;
+
+    const sizeInMB = sizeInKB / 1000;
+
+    const sizeInGB = sizeInMB / 1000;
+
+    return {
+      kb: sizeInKB.toFixed(2),
+      mb: sizeInMB.toFixed(2),
+      gb: sizeInGB.toFixed(2),
+    };
+  }
+
+  const calculateWidthPercentage = (fileStorage: number) => {
+    const limitInKB = 10 * 1024 * 1024; // 10 GB in KB
+    const widthPercentage = (fileStorage / limitInKB) * 100;
+
+    // Ensure width percentage does not exceed 100%
+    return Math.min(widthPercentage, 100);
   };
 
   // Handle file upload
@@ -43,6 +94,7 @@ function page() {
       const response = await axios.post(`${API}/generatePresignedUrl`, {
         filename: file.name,
         filetype: file.type,
+        orgId: data?.organisationId,
       });
       const { presignedUrl, uploadedFileName } = response.data; // Destructure the presigned URL from the response
 
@@ -53,11 +105,57 @@ function page() {
       });
 
       if (uploaded) {
-        await axios.post(`${API}/addStorage/${data?.organisationId}`, {
-          size: file.size,
-          filename: uploadedFileName,
-          filetype: file.type,
-        });
+        const res = await axios.post(
+          `${API}/addStorage/${data?.id}/${data?.organisationId}`,
+          {
+            size: file.size,
+            filename: uploadedFileName,
+            filetype: file.type,
+          }
+        );
+        if (res.data.success) {
+          const sizeInKb = Number(convertSize(file.size).kb);
+
+          setStorage((prevStorage) => [
+            ...prevStorage,
+            {
+              orgid: data?.organisationId,
+              userid: {
+                email: data?.email,
+                fullname: data?.fullname,
+                profilepic: data?.profilepic,
+              },
+              filename: file.name,
+              date: Date.now(),
+              type: file.type,
+              size: sizeInKb,
+            },
+          ]);
+
+          setFilteredStorage((prevStorage) => [
+            ...prevStorage,
+            {
+              orgid: data?.organisationId,
+              userid: {
+                email: data?.email,
+                fullname: data?.fullname,
+                profilepic: data?.profilepic,
+              },
+              filename: file.name,
+              date: Date.now(),
+              type: file.type,
+              size: sizeInKb,
+            },
+          ]);
+
+          if (filestorage) {
+            setFilestorage((prev) => (prev || 0) + sizeInKb); // Update filestorage
+          }
+
+          toast.success("File uploaded successfully!");
+        } else {
+          toast.error(res.data.message || "Something went wrong");
+        }
       }
 
       setUploadPop(false);
@@ -69,23 +167,47 @@ function page() {
   };
 
   const getStorage = async () => {
+    setLoading(true)
+   
     try {
       const res = await axios.get(
         `${API}/fetchStorage/${data?.organisationId}`
       );
       if (res.data.success) {
+        setFilestorage(res.data.storageused);
         setStorage(res.data?.storage);
+        setFilteredStorage(res.data?.storage);
       } else {
         toast.error(res.data.message || "Something went wrong");
       }
     } catch (error) {
       errorHandler(error);
+    }finally{
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     getStorage();
   }, []);
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const term = event.target.value.toLowerCase();
+    setSearchTerm(term);
+
+    if (term === "") {
+      // Reset to original storage list when search is cleared
+      setFilteredStorage(storage);
+    } else {
+      // Filter the storage based on the search term
+      const filtered =
+        storage &&
+        storage.filter(
+          (item) => item?.filename?.toLowerCase().includes(term) // Assuming each storage item has a 'name' property
+        );
+      setFilteredStorage(filtered);
+    }
+  };
 
   return (
     <>
@@ -97,7 +219,10 @@ function page() {
                 Upload File Here
               </h2>
               <RxCross2
-                onClick={() => setUploadPop(false)}
+                onClick={() => {
+                  setUploadPop(false);
+                  setFile(null);
+                }}
                 className="cursor-pointer text-[#F13E3E]"
               />
             </div>
@@ -175,6 +300,8 @@ function page() {
             <div className="sm:h-[50px] h-auto w-full sm:w-[50%] bg-white sm:mt-6 py-2 flex items-center px-2 text-[12px] rounded-2xl mb-6 text-[#BEBEBE]">
               <input
                 type="text"
+                value={searchTerm}
+                onChange={handleSearch}
                 placeholder="Search files"
                 className="w-full bg-transparent outline-none px-1 py-2 text-black text-sm"
               />
@@ -190,7 +317,7 @@ function page() {
                         Storage used:
                       </div>
                       <div className="text-[#121212] text-[12px]  w-[30%]">
-                        4646
+                        {filestorage && convertFromBytes(filestorage)}
                       </div>
                       <div className="text-[#121212] text-[12px] w-[50%] justify-end flex">
                         10 GB
@@ -198,7 +325,14 @@ function page() {
                     </div>
                   </div>
                   <div className="w-full h-3 mt-2 relative overflow-hidden min-w-[100px] bg-white rounded-full">
-                    <div className="absolute top-0 left-0 rounded-r-xl bg-[#08A0F7] h-full" />
+                    <div
+                      style={{
+                        width: `${
+                          filestorage && calculateWidthPercentage(filestorage)
+                        }%`,
+                      }}
+                      className="absolute top-0 left-0 rounded-r-xl bg-[#08A0F7] h-full"
+                    />
                   </div>
                 </div>
               </div>
@@ -241,26 +375,99 @@ function page() {
                 Actions
               </div>
             </div>
-            <>
-              <div
-                className={`flex flex-row justify-evenly items-center w-full border-b-[1px] border-gray-200 h-[50px] text-center text-[#1E1E1E] `}
-              >
-                <div className="sm:w-[30%] w-[60%] text-left ml-4">hjk</div>
-                <div className="sm:w-[20%] w-[20%] text-left">ghj</div>
-                <div className="sm:w-[20%] w-[20%] text-left">fghjk</div>
-                <div className="sm:w-[20%] w-[20%] text-left">fghjk</div>
-                <div className="sm:w-[10%] w-[20%] text-left">
-                  <div className="flex flex-row gap-1 sm:gap-3 text-left ">
-                    <MdDeleteOutline className="text-[18px] cursor-pointer text-[#F13E3E]" />
 
-                    <div className="text-[18px] cursor-pointer text-blue-600">
-                      <HiDownload />
-                    </div>
+            {loading ? (
+                <div className="space-y-4 h-full w-full px-3 pb-3">
+                {[...Array(5)].map((_, index) => (
+                  <div
+                    key={index}
+                    className="w-full h-[50px] flex items-center justify-evenly animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded-md"
+                  >
+                    <div className="sm:w-[30%] w-[60%] h-8 bg-gray-300 rounded-md"></div>
+                    <div className="sm:w-[20%] w-[20%] h-8 bg-gray-300 rounded-md"></div>
+                    <div className="sm:w-[20%] w-[20%] h-8 bg-gray-300 rounded-md"></div>
+                    <div className="sm:w-[20%] w-[20%] h-8 bg-gray-300 rounded-md"></div>
+                    <div className="sm:w-[10%] w-[20%] h-8 bg-gray-300 rounded-md"></div>
                   </div>
-                </div>
+                ))}
               </div>
-            </>
+            ) : (
+              <>
+                {filteredStorage.length > 0 ? (
+                  <>
+                    {filteredStorage.map((item, index) => (
+                      <div
+                        key={index}
+                        className={`flex flex-row ${
+                          index % 2 === 0 ? "bg-[#EAECF0]" : "bg-white"
+                        } justify-evenly items-center w-full border-b-[1px] border-gray-200 h-[50px] text-center text-[#1E1E1E] `}
+                      >
+                        <div className="sm:w-[30%] w-[60%] text-left ml-4">
+                          {truncatetext(item.filename || "", 20)}
+                        </div>
+                        <div className="sm:w-[20%] w-[20%] text-left">
+                          {convertFromBytes(item.size)}
+                        </div>
+                        <div className="sm:w-[20%] w-[20%] text-left">
+                          {formatDate(item.date || "")}
+                        </div>
+                        <div className="sm:w-[20%] w-[20%] text-left">
+                          <div className="flex items-center gap-3">
+                            <div className="w-[40px] h-[40px] overflow-hidden">
+                              <Image
+                                className="w-full h-full cursor-pointer object-cover shadow-sm rounded-full"
+                                src={
+                                  item.userid.profilepic
+                                    ? item.userid.profilepic
+                                    : ""
+                                }
+                                alt={
+                                  item.userid.fullname
+                                    ? item.userid.fullname
+                                    : ""
+                                }
+                                width={40}
+                                height={40}
+                              />
+                            </div>
+
+                            <div className="space-y-0.5">
+                              <div className="text-sm font-semibold">
+                                {item.userid.fullname}
+                              </div>
+
+                              <p className="text-xs font-medium text-muted-foreground">
+                                {item.userid.email}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="sm:w-[10%] w-[20%] text-left">
+                          <div className="flex flex-row gap-1 sm:gap-3 text-left ">
+                            <MdDeleteOutline className="text-[18px] cursor-pointer text-[#F13E3E]" />
+
+                            <div className="text-[18px] cursor-pointer text-blue-600">
+                              <HiDownload />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-center items-center w-full h-[300px] ">
+                      <div className="text-[#1e1e1e] text-[14px] font-semibold">
+                        No files uploaded yet
+                      </div>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
           </div>
+
+          
         </div>
       </div>
     </>
