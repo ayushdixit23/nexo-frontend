@@ -1,6 +1,7 @@
 "use client";
 import { useAuthContext } from "@/app/(utilities)/utils/AuthUser";
 import { API } from "@/app/(utilities)/utils/config";
+import { errorHandler } from "@/app/(utilities)/utils/helpers";
 import FetchOrganisation from "@/app/components/FetchOrganisation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -103,17 +104,7 @@ const page = () => {
       }
     } catch (error) {
       setIsLoading(false);
-      if (axios.isAxiosError(error)) {
-        if (error.response) {
-          toast.error(error.response.data.message || "Something went wrong");
-        } else if (error.request) {
-          toast.error("Network error. Please try again later.");
-        } else {
-          toast.error("An error occurred. Please try again.");
-        }
-      } else {
-        toast.error("Unexpected error occurred.");
-      }
+      errorHandler(error);
     }
   };
 
@@ -254,7 +245,11 @@ const page = () => {
               Join an Organization
             </div>
             <div>
-              <FetchOrganisation id={data?.id} router={router} setUser={setData}/>
+              <FetchOrganisation
+                id={data?.id}
+                router={router}
+                setUser={setData}
+              />
             </div>
           </div>
         )}
