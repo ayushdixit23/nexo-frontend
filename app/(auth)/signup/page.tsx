@@ -57,7 +57,11 @@ const page = () => {
       const res = await axios.post(`${API}/register`, formData);
       if (res.data.success) {
         toast.success(res.data.message);
-        Cookies.set("token", res.data.token);
+
+        const expires = new Date();
+        expires.setTime(expires.getTime() + 15 * 24 * 60 * 60 * 1000); // 15 days in milliseconds
+        Cookies.set("token", res.data.token, { expires });
+        
         router.push("/action");
         setData(res.data.data);
       } else {

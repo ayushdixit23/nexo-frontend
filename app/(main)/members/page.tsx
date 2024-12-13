@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { RiSearch2Line } from "react-icons/ri";
-import { BsPlus } from "react-icons/bs";
+import { BsChatSquare, BsPlus } from "react-icons/bs";
 import {
   Table,
   TableBody,
@@ -18,6 +18,7 @@ import { errorHandler } from "@/app/(utilities)/utils/helpers";
 import axios from "axios";
 import { API } from "@/app/(utilities)/utils/config";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 interface Members {
   fullname: string;
@@ -230,13 +231,9 @@ const page = () => {
                       </TableCell>
                       <TableCell className="w-[130px] px-4">$250.00</TableCell>
                       <TableCell className="w-[130px] px-4">
-                        <div className="flex flex-row gap-3 text-left ">
-                          <MdDeleteOutline className="text-[18px] cursor-pointer text-[#F13E3E]" />
-
-                          <div className="text-[18px] cursor-pointer text-blue-600">
-                            <HiDownload />
-                          </div>
-                        </div>
+                        <Link href={`/chats/${d?.id}`}>
+                          <BsChatSquare />
+                        </Link>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -322,13 +319,9 @@ const page = () => {
                       </TableCell>
                       <TableCell className="w-[130px] px-4">$250.00</TableCell>
                       <TableCell className="w-[130px] px-4">
-                        <div className="flex flex-row gap-3 text-left ">
-                          <MdDeleteOutline className="text-[18px] cursor-pointer text-[#F13E3E]" />
-
-                          <div className="text-[18px] cursor-pointer text-blue-600">
-                            <HiDownload />
-                          </div>
-                        </div>
+                        <Link href={`/chats/teams/${d?.id}`}>
+                          <BsChatSquare />
+                        </Link>
                       </TableCell>
                     </TableRow>
                   ))}

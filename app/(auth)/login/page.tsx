@@ -37,7 +37,10 @@ const page = () => {
   const [organisations, setOrganisations] = useState<orgData[]>([]);
 
   const cookiesSetter = (data: any, token: string) => {
-    Cookies.set("token", token);
+    const expires = new Date();
+    expires.setTime(expires.getTime() + 15 * 24 * 60 * 60 * 1000); // 15 days in milliseconds
+    Cookies.set("token", token, { expires });
+
     setAuth(true);
     setData(data);
     toast.success("Login successful");
