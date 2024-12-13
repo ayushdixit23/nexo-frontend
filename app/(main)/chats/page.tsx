@@ -18,7 +18,7 @@ interface Data {
   };
   lastMessage:
     | {
-        text: string | null;
+        message: string | null;
         createdAt: string | null; // createdAt is usually a string or Date
       }
     | "Start a conversation";
@@ -79,7 +79,7 @@ const page = () => {
 
                       <p className="text-xs font-medium text-muted-foreground">
                         {/* @ts-ignore */}
-                        {d.lastMessage.text || "Start a conversation"}
+                        {d.lastMessage.message || "Start a conversation"}
                       </p>
                     </div>
                   </div>

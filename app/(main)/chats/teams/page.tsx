@@ -1,46 +1,89 @@
 "use client";
 import { useAuthContext } from "@/app/(utilities)/utils/AuthUser";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import notasks from "../../../assets/no-tasks.png";
 import { FaTasks } from "react-icons/fa";
 import Link from "next/link";
+import { errorHandler } from "@/app/(utilities)/utils/helpers";
+import axios from "axios";
+import { API } from "@/app/(utilities)/utils/config";
+import toast from "react-hot-toast";
+
+// Define the TeamMember interface for each member
+interface TeamMember {
+  id: string; // Member's ID (could be the ObjectId in string format)
+  fullname: string; // Member's full name
+  profilepic: string; // Profile picture URL (or path)
+  email: string; // Member's email
+}
+
+// Define the Teams interface
+interface Teams {
+  id: string; // Team ID
+  name: string; // Team name
+  lastMessage: {
+    message: string; // Last message content
+    createdAt: Date; // Timestamp
+  }; // Last message sent
+  organisation: string; // Organisation ID as string (ObjectId in MongoDB is stored as a string)
+  creator: string; // Creator ID (ObjectId in MongoDB)
+  createdAt?: Date; // Optional: Timestamp when the team was created
+  updatedAt?: Date; // Optional: Timestamp when the team was last updated
+  members: TeamMember[]; // Array of TeamMember objects
+}
 
 const page = () => {
   const { data } = useAuthContext();
+  const [teams, setTeams] = useState<Teams[]>([]);
 
-  const array = [{}, {}, {}, {}];
+  const fetchTeams = async () => {
+    try {
+      const res = await axios.get(`${API}/fetchTeams/${data?.id}`);
+      if (res.data.success) {
+        setTeams(res.data.data);
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (error) {
+      errorHandler(error);
+    }
+  };
+
+  console.log(teams);
+
+  useEffect(() => {
+    if (data?.id) {
+      fetchTeams();
+    }
+  }, [data]);
 
   return (
     <div className="flex flex-col gap-5 w-full h-[100%]">
       <>
-        {array.length > 0 ? (
+        {teams.length > 0 ? (
           <>
-            {array?.map((_, index) => {
+            {teams?.map((team, index) => {
               return (
                 <Link
-                  href={`/chats/${index}`}
+                  href={`/chats/teams/${team?.id}`}
                   className="p-5 rounded-xl bg-white"
                   key={index}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-[50px] h-[50px] overflow-hidden">
-                      <Image
-                        className="w-full h-full cursor-pointer object-cover shadow-sm rounded-full"
-                        src={data?.profilepic || "/default-profile.png"} // Fallback to a default image if not provided
-                        alt={data?.fullname || "User"} // Fallback to 'User' if no name is provided
-                        width={40}
-                        height={40}
-                      />
+                    <div className="flex items-center gap-3">
+                      <div className="w-[40px] h-[40px] flex justify-center items-center rounded-full bg-yellow-500 overflow-hidden">
+                        <div className="text-white font-semibold">
+                          {team?.name.charAt(0).toUpperCase()}
+                        </div>
+                      </div>
                     </div>
 
                     <div className="space-y-0.5">
-                      <div className="text-sm font-semibold">
-                        {data?.fullname || "Unknown User"}
-                      </div>
+                      <div className="text-sm font-semibold">{team.name}</div>
 
                       <p className="text-xs font-medium text-muted-foreground">
-                        {data?.email || "Email not available"}
+                        {team.lastMessage.message}
                       </p>
                     </div>
                   </div>
