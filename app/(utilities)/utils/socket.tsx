@@ -6,7 +6,7 @@ import React, {
   useState,
   ReactNode,
 } from "react";
-import { useAuthContext } from "../utils/AuthUser";
+import { useAuthContext } from "../utils/auth";
 import { io, Socket } from "socket.io-client";
 
 interface SocketContextType {

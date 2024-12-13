@@ -9,7 +9,7 @@ import Link from "next/link";
 import axios from "axios";
 import { API } from "@/app/(utilities)/utils/config";
 import toast from "react-hot-toast";
-import { useAuthContext } from "@/app/(utilities)/utils/AuthUser";
+import { useAuthContext } from "@/app/(utilities)/utils/auth";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { errorHandler } from "@/app/(utilities)/utils/helpers";

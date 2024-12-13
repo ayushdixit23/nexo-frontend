@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { useAuthContext } from "../(utilities)/utils/AuthUser";
+import { useAuthContext } from "../(utilities)/utils/auth";
 import {
   Bolt,
   DatabaseZap,

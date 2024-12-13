@@ -16,7 +16,7 @@ import { RxCross2 } from "react-icons/rx";
 import { IoCloudUpload } from "react-icons/io5";
 import Image from "next/image";
 import uploadFile from "@/app/(utilities)/utils/uploadfile";
-import { useAuthContext } from "@/app/(utilities)/utils/AuthUser";
+import { useAuthContext } from "@/app/(utilities)/utils/auth";
 
 interface Storage {
   orgid: string | undefined;

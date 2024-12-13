@@ -1,5 +1,5 @@
 "use client";
-import { useAuthContext } from "@/app/(utilities)/utils/AuthUser";
+import { useAuthContext } from "@/app/(utilities)/utils/auth";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import notasks from "../../../assets/no-tasks.png";
@@ -39,7 +39,7 @@ const page = () => {
 
   const fetchTeams = async () => {
     try {
-      const res = await axios.get(`${API}/fetchTeams/${data?.id}`);
+      const res = await axios.get(`${API}/fetchTeams/${data?.id}/${data?.organisationId}`);
       if (res.data.success) {
         setTeams(res.data.data);
       } else {

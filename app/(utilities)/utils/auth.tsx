@@ -75,7 +75,6 @@ export const AuthContextProvider = ({
       if (res.data.success) {
         const dataToPut = res.data.data;
 
-
         // Retrieve the stored organisationId
         const organisationId = localStorage.getItem("organisationId");
 

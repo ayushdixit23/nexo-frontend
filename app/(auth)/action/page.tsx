@@ -1,5 +1,5 @@
 "use client";
-import { useAuthContext } from "@/app/(utilities)/utils/AuthUser";
+import { useAuthContext } from "@/app/(utilities)/utils/auth";
 import { API } from "@/app/(utilities)/utils/config";
 import { errorHandler } from "@/app/(utilities)/utils/helpers";
 import FetchOrganisation from "@/app/components/FetchOrganisation";

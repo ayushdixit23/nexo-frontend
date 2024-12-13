@@ -1,5 +1,5 @@
 "use client";
-import { useAuthContext } from "@/app/(utilities)/utils/AuthUser";
+import { useAuthContext } from "@/app/(utilities)/utils/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

@@ -10,21 +10,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MdDeleteOutline } from "react-icons/md";
-import { HiDownload } from "react-icons/hi";
 import Image from "next/image";
-import { useAuthContext } from "@/app/(utilities)/utils/AuthUser";
+import { useAuthContext } from "@/app/(utilities)/utils/auth";
 import { errorHandler } from "@/app/(utilities)/utils/helpers";
 import axios from "axios";
 import { API } from "@/app/(utilities)/utils/config";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { RxCross2 } from "react-icons/rx";
+import { IoMdAdd } from "react-icons/io";
+import { IoCheckmarkCircle, IoRemoveSharp } from "react-icons/io5";
 
 interface Members {
   fullname: string;
   profilepic: string;
   id: string;
   email: string;
+  isJoined?: boolean;
 }
 
 interface Teams {
@@ -50,7 +52,18 @@ const page = () => {
   const [teams, setTeams] = useState<Teams[]>([]);
   const [teamName, setTeamName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [addMembersPopup, setAddMembersPopup] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState({
+    id: "",
+    name: "",
+    members: [],
+    creator: {},
+  });
   const [isCreating, setIsCreating] = useState(false);
+  const [operation, setOperation] = useState({
+    addMembers: [],
+    removeMembers: [],
+  });
 
   const handleCreateTeam = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +114,6 @@ const page = () => {
         `${API}/fetchMembersAndTeams/${data?.organisationId}`
       );
       if (res.data.success) {
-        console.log(res.data.data);
         setTeams(res.data.data.teams || []);
         setMembers(res.data.data.members || []);
         setIsLoading(false);
@@ -119,6 +131,99 @@ const page = () => {
     }
     handleFetchMembersAndTeams();
   }, [data?.organisationId]);
+
+  // Toggle function for adding/removing members
+  const handleMemberClick = (memberId, isJoined) => {
+    const updatedMembers = selectedTeam.members.map((member) => {
+      if (member.id === memberId) {
+        return { ...member, isJoined };
+      }
+      return member;
+    });
+
+    setSelectedTeam((prevData) => ({
+      ...prevData,
+      members: updatedMembers,
+    }));
+
+    setOperation((prevState) => {
+      let addMembers = [...prevState.addMembers];
+      let removeMembers = [...prevState.removeMembers];
+
+      // If member is in addMembers, move to removeMembers (show minus to plus)
+      if (addMembers.includes(memberId)) {
+        addMembers = addMembers.filter((id) => id !== memberId);
+        removeMembers.push(memberId);
+      }
+      // If member is in removeMembers, move to addMembers (show plus to minus)
+      else if (removeMembers.includes(memberId)) {
+        removeMembers = removeMembers.filter((id) => id !== memberId);
+        addMembers.push(memberId);
+      }
+      // If member is neither in addMembers nor removeMembers, add to addMembers
+      else if (isJoined) {
+        // If `isJoined` is true, the member should be added initially, show minus
+        addMembers.push(memberId);
+      } else {
+        // Otherwise, show plus to add member
+        removeMembers.push(memberId);
+      }
+
+      return {
+        addMembers,
+        removeMembers,
+      };
+    });
+  };
+
+  const handleAddMembers = async () => {
+    if (
+      operation.addMembers.length === 0 &&
+      operation.removeMembers.length === 0
+    ) {
+      toast.error("No members selected");
+      return;
+    }
+    try {
+      setIsCreating(true);
+      const res = await axios.post(
+        `${API}/addMembers/${data?.id}/${selectedTeam.id}`,
+        {
+          addMembers: operation.addMembers,
+          removeMembers: operation.removeMembers,
+        }
+      );
+      if (res.data.success) {
+        toast.success(res.data.message);
+        handleFetchMembersAndTeams();
+        setSelectedTeam({
+          id: "",
+          name: "",
+          members: [],
+          creator: {},
+        });
+        setOperation({
+          addMembers: [],
+          removeMembers: [],
+        });
+      } else {
+        toast.error(res.data.message || "Something went wrong!");
+      }
+    } catch (error) {
+      errorHandler(error);
+    } finally {
+      setIsCreating(false);
+      setAddMembersPopup(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -158,15 +263,127 @@ const page = () => {
           </div>
         </div>
       )}
+
+      {addMembersPopup && (
+        <div className="fixed inset-0 flex z-40 justify-center items-center h-screen bg-black/60 backdrop:blur-md">
+          <div className="md:w-[33%] flex shadow-md flex-col gap-3 bg-white rounded-xl h-auto">
+            <div className="flex justify-between border-b items-center p-3 px-4 w-full">
+              <div className="flex items-center gap-3">
+                <div className="w-[40px] h-[40px] flex justify-center items-center rounded-full bg-yellow-500 overflow-hidden">
+                  <div className="text-white font-semibold">
+                    {selectedTeam?.name.charAt(0).toUpperCase()}
+                  </div>
+                </div>
+
+                <div className="space-y-0.5">
+                  <div className="text-sm font-semibold">
+                    {selectedTeam?.name}
+                  </div>
+                </div>
+              </div>
+              <div
+                onClick={() => setAddMembersPopup(false)}
+                className="cursor-pointer text-xl font-semibold"
+              >
+                <RxCross2 />
+              </div>
+            </div>
+
+            <div className="flex flex-col">
+              <div className="text-sm p-1 px-4  font-semibold ">
+                Add/Remove Members
+              </div>
+              <div className="flex flex-col max-h-[200px] overflow-y-scroll no-scrollbar">
+                {selectedTeam?.members?.map((member) => (
+                  <div
+                    className={`flex justify-between w-full border-b p-3 px-4 items-center gap-1`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-[40px] h-[40px] overflow-hidden">
+                        <Image
+                          className="w-full h-full cursor-pointer object-cover shadow-sm rounded-full"
+                          // @ts-ignore
+                          src={member?.profilepic ? member?.profilepic : ""}
+                          //@ts-ignore
+                          alt={member?.fullname}
+                          width={40}
+                          height={40}
+                        />
+                      </div>
+
+                      <div className="space-y-0.5">
+                        <div className="text-sm font-semibold">
+                          {/* @ts-ignore */}
+                          {member?.fullname}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {/* @ts-ignore */}
+                          {member?.email}
+                        </div>
+                      </div>
+                    </div>
+                    {/* @ts-ignore */}
+
+                    {selectedTeam.creator.id !== member.id && (
+                      <div>
+                        <div
+                          onClick={() => {
+                            const updatedMember = {
+                              ...member,
+                              isJoined: !member.isJoined, // Flip the `isJoined` value
+                            };
+
+                            handleMemberClick(
+                              member.id,
+                              updatedMember.isJoined
+                            );
+                          }}
+                          className="text-lg font-semibold cursor-pointer"
+                        >
+                          {/* {member?.isJoined ? <IoRemoveSharp
+                          /> : <IoMdAdd />} */}
+
+                          {operation.addMembers.includes(member.id) ||
+                          member.isJoined ? (
+                            <IoRemoveSharp className="text-red-500" /> // Show minus (remove) if added or isJoined
+                          ) : (
+                            <IoMdAdd className="text-blue-500" /> // Show plus (add) if removed
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-center w-full items-center gap-3 p-2 text-sm">
+                <button
+                  onClick={() => setAddMembersPopup(false)}
+                  className="text-center p-2 px-4 w-full rounded-lg border "
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={isCreating}
+                  onClick={handleAddMembers}
+                  className="p-2 px-4 rounded-lg w-full text-white bg-[#E48700]"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="w-full h-full flex flex-col gap-6">
         {/* member list */}
         <div className="flex bg-white rounded-xl flex-col">
           <div className="flex justify-between p-4 border-b items-center w-full">
             <div className="font-semibold text-[17px]">Members List</div>
             <div className="flex justify-center items-center gap-4">
-              <div className="border border-[#EAEEF4] p-2 rounded-full">
+              {/* <div className="border border-[#EAEEF4] p-2 rounded-full">
                 <RiSearch2Line />
-              </div>
+              </div> */}
               <div className="flex justify-center items-center gap-1">
                 <button className="flex justify-center items-center gap-1 text-white text-sm p-2 px-4 rounded-[10px] bg-[#FFC248]">
                   <BsPlus className="text-xl" />
@@ -257,9 +474,9 @@ const page = () => {
           <div className="flex justify-between p-4 border-b items-center w-full">
             <div className="font-semibold text-[17px]">Teams List</div>
             <div className="flex justify-center items-center gap-4">
-              <div className="border border-[#EAEEF4] p-2 rounded-full">
+              {/* <div className="border border-[#EAEEF4] p-2 rounded-full">
                 <RiSearch2Line />
-              </div>
+              </div> */}
               <div className="flex justify-center items-center gap-1">
                 <button
                   onClick={() => setTeamPopUp(true)}
@@ -319,9 +536,33 @@ const page = () => {
                       </TableCell>
                       <TableCell className="w-[130px] px-4">$250.00</TableCell>
                       <TableCell className="w-[130px] px-4">
-                        <Link href={`/chats/teams/${d?.id}`}>
-                          <BsChatSquare />
-                        </Link>
+                        <div className="flex items-center gap-3">
+                          <Link href={`/chats/teams/${d?.id}`}>
+                            <BsChatSquare />
+                          </Link>
+
+                          <button
+                            className="text-sm py-1 px-4 border bg-white font-medium rounded-xl text-black transition duration-150"
+                            onClick={() => {
+                              setAddMembersPopup(true);
+
+                              setSelectedTeam({
+                                id: d?.id,
+                                name: d?.name,
+                                // @ts-ignore
+                                members: [...d?.members, ...members].filter(
+                                  (member, index, self) =>
+                                    index ===
+                                    self.findIndex((m) => m.id === member.id)
+                                ),
+                                // @ts-ignore
+                                creator: d?.creator,
+                              });
+                            }}
+                          >
+                            Add
+                          </button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

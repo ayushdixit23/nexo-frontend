@@ -1,5 +1,5 @@
 "use client";
-import { useAuthContext } from "@/app/(utilities)/utils/AuthUser";
+import { useAuthContext } from "@/app/(utilities)/utils/auth";
 import React from "react";
 import SettingLayout from "./components/SettingLayout";
 import toast from "react-hot-toast";
@@ -57,7 +57,13 @@ const page = () => {
             isMobileView && !type && "pn:max-sm:hidden"
           } w-full rounded-xl flex bg-white justify-center items-center p-4 h-full`}
         >
-          {(type === "editProfile" || !type) && <AccountSettings data={data} />}
+          {(type === "editProfile" || !type) && (
+            <AccountSettings
+              data={data}
+              // @ts-ignore
+              setData={setData}
+            />
+          )}
         </div>
       </div>
     </div>

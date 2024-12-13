@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import React from "react";
-import { useAuthContext } from "../(utilities)/utils/AuthUser";
+import { useAuthContext } from "../(utilities)/utils/auth";
 
 const Header = () => {
   const { data } = useAuthContext();
