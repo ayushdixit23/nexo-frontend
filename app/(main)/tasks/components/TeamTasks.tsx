@@ -64,7 +64,6 @@ const TeamTasks = ({
                       key={index}
                       className="bg-white w-full p-5 flex flex-col gap-4 rounded-xl max-h-[600px]"
                     >
-                      {console.log(team)}
                       <div className="flex justify-between items-center w-full">
                         <div className="rounded-xl">
                           <div className="flex items-center gap-3">

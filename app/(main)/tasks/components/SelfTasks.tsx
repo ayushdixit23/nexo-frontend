@@ -44,9 +44,9 @@ const SelfTasks = ({
         >
           <div className="ml-2">Total Tasks : {sortedTasks.length}</div>
           <div className="flex justify-center items-center gap-2">
-            <div className="border border-[#EAEEF4] bg-white p-2 rounded-full">
+            {/* <div className="border border-[#EAEEF4] bg-white p-2 rounded-full">
               <RiSearch2Line />
-            </div>
+            </div> */}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

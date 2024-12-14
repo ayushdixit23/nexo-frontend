@@ -16,6 +16,7 @@ export interface Task {
   };
   status: string;
   assignedTeams?: [];
+  type: "team" | "self";
 }
 
 export interface Team {
@@ -96,6 +97,17 @@ const tasksSlice = createSlice({
         state.mytasks[index] = { ...action.payload, temporary: false }; // Remove temporary flag
       }
     },
+
+    updateStatusTask: (state, action: PayloadAction<Task>) => {
+      const index = state.mytasks.findIndex(
+        (task) => task.id === action.payload.id
+      );
+
+      if (index !== -1) {
+        // Update the task status and other details
+        state.mytasks[index] = { ...state.mytasks[index], ...action.payload };
+      }
+    },
     addTeamTask: (state, action: PayloadAction<Task>) => {
       const task = action.payload;
 
@@ -113,12 +125,44 @@ const tasksSlice = createSlice({
     updateTeamTask: (state, action: PayloadAction<Task>) => {
       const updatedTask = action.payload;
 
+      // Update each team’s tasks array
+      state.teams.forEach((team) => {
+        const teamTaskIndex = team.tasks.findIndex(
+          (task) => task.temporary === true
+        );
+        if (teamTaskIndex !== -1) {
+          team.tasks[teamTaskIndex] = updatedTask;
+        }
+      });
+
+      // Optionally, sort again
+      // state.mytasks = state.mytasks.slice().sort((a, b) => {
+      //   if (state.sortOrder === "new") {
+      //     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      //   } else {
+      //     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      //   }
+      // });
+    },
+    updateStatusTeamTask: (state, action: PayloadAction<Task>) => {
+      const index = state.mytasks.findIndex(
+        (task) => task.id === action.payload.id
+      );
+
+      if (index !== -1) {
+        // Update the task status and other details
+        state.mytasks[index] = { ...state.mytasks[index], ...action.payload };
+      }
+
+      const updatedTask = action.payload;
 
       // Update each team’s tasks array
       state.teams.forEach((team) => {
-        const teamTaskIndex = team.tasks.findIndex((task) => task.temporary === true);
-        if (teamTaskIndex !== -1) {
-          team.tasks[teamTaskIndex] = updatedTask;
+        const index = team.tasks.findIndex(
+          (task) => task.id === action.payload.id
+        );
+        if (index !== -1) {
+          team.tasks[index] = updatedTask;
         }
       });
 
@@ -158,6 +202,8 @@ export const {
   updateTask,
   updateTeamTask,
   addTeamTask,
+  updateStatusTask,
+  updateStatusTeamTask,
 } = tasksSlice.actions;
 
 export default tasksSlice.reducer;

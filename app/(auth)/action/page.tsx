@@ -131,9 +131,9 @@ const page = () => {
             <div className="text-xs flex justify-center items-center font-semibold rounded-2xl text-black">
               OR
             </div>
-            <button className="bg-[#FFC977] hover:bg-[#FFC977]/80 w-full focus:ring-4 focus:outline-none focus:ring-[#FFC977]/50 font-semibold rounded-lg text-sm px-5 py-2.5 text-center">
+            {/* <button className="bg-[#FFC977] hover:bg-[#FFC977]/80 w-full focus:ring-4 focus:outline-none focus:ring-[#FFC977]/50 font-semibold rounded-lg text-sm px-5 py-2.5 text-center">
               Continue as Individual
-            </button>
+            </button> */}
           </div>
         )}
 
