@@ -4,6 +4,7 @@ import ShimmerLoader from "./Shimmer";
 import src from "../../../assets/no-tasks.png";
 import Tasks from "./Tasks";
 import NoComponent from "@/app/components/NoComponent";
+import Image from "next/image";
 
 const TeamTasks = ({
   isLoading,
@@ -19,9 +20,9 @@ const TeamTasks = ({
           {isLoading ? (
             Array(3)
               .fill(null)
-              .map((_, index) => (
+              .map((_, loadingIndex) => (
                 <div
-                  key={index}
+                  key={loadingIndex}
                   className="bg-white w-full p-5 flex flex-col gap-4 rounded-xl h-full"
                 >
                   <div className="flex justify-between items-center w-full">
@@ -59,7 +60,11 @@ const TeamTasks = ({
               ) : (
                 <>
                   {teams.map((team, index) => (
-                    <div className="bg-white w-full p-5 flex flex-col gap-4 rounded-xl h-full">
+                    <div
+                      key={index}
+                      className="bg-white w-full p-5 flex flex-col gap-4 rounded-xl max-h-[600px]"
+                    >
+                      {console.log(team)}
                       <div className="flex justify-between items-center w-full">
                         <div className="rounded-xl">
                           <div className="flex items-center gap-3">
@@ -78,7 +83,26 @@ const TeamTasks = ({
                             </div>
                           </div>
                         </div>
-                        <div>Hello</div>
+                        <div className="flex justify-center items-center">
+                          {team?.members.slice(0, 4)?.map((m, y) => (
+                            <div
+                              style={{
+                                marginLeft: `-${y + 10}px`,
+                                zIndex: `${y}`,
+                              }}
+                              key={y}
+                              className="w-[32px] h-[32px] "
+                            >
+                              <Image
+                                src={m?.profilepic || ""}
+                                width={32}
+                                height={32}
+                                alt={m?.fullname}
+                                className="h-full object-cover rounded-[22px] w-full"
+                              />
+                            </div>
+                          ))}
+                        </div>
                       </div>
 
                       <>
@@ -89,17 +113,17 @@ const TeamTasks = ({
                             </div>
                           </div>
                         ) : (
-                          <>
-                            {team.tasks?.map((d, index) => (
+                          <div className="overflow-y-scroll flex flex-col gap-4 no-scrollbar max-h-full">
+                            {team.tasks?.map((d, newIndex) => (
                               <Tasks
                                 d={d}
-                                key={index}
+                                key={newIndex}
                                 className={
                                   "bg-[#f1f1f1] flex flex-col gap-4 p-4 rounded-xl"
                                 }
                               />
                             ))}
-                          </>
+                          </div>
                         )}
                       </>
                     </div>

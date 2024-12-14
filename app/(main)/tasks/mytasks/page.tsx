@@ -5,9 +5,7 @@ import { RootState } from "@/app/redux/store";
 import SelfTasks from "../components/SelfTasks";
 
 const page = () => {
-  const { mytasks, teams, error, loading } = useSelector(
-    (state: RootState) => state.tasks
-  );
+  const { mytasks, loading } = useSelector((state: RootState) => state.tasks);
 
   return (
     <>

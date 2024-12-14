@@ -326,30 +326,32 @@ const page = () => {
 
                     {selectedTeam.creator.id !== member.id && (
                       <div>
-                        <div
-                          onClick={() => {
-                            const updatedMember = {
-                              ...member,
-                              isJoined: !member.isJoined, // Flip the `isJoined` value
-                            };
+                        {selectedTeam.creator.id == data?.id && (
+                          <div
+                            onClick={() => {
+                              const updatedMember = {
+                                ...member,
+                                isJoined: !member.isJoined, // Flip the `isJoined` value
+                              };
 
-                            handleMemberClick(
-                              member.id,
-                              updatedMember.isJoined
-                            );
-                          }}
-                          className="text-lg font-semibold cursor-pointer"
-                        >
-                          {/* {member?.isJoined ? <IoRemoveSharp
+                              handleMemberClick(
+                                member.id,
+                                updatedMember.isJoined
+                              );
+                            }}
+                            className="text-lg font-semibold cursor-pointer"
+                          >
+                            {/* {member?.isJoined ? <IoRemoveSharp
                           /> : <IoMdAdd />} */}
 
-                          {operation.addMembers.includes(member.id) ||
-                          member.isJoined ? (
-                            <IoRemoveSharp className="text-red-500" /> // Show minus (remove) if added or isJoined
-                          ) : (
-                            <IoMdAdd className="text-blue-500" /> // Show plus (add) if removed
-                          )}
-                        </div>
+                            {operation.addMembers.includes(member.id) ||
+                            member.isJoined ? (
+                              <IoRemoveSharp className="text-red-500" /> // Show minus (remove) if added or isJoined
+                            ) : (
+                              <IoMdAdd className="text-blue-500" /> // Show plus (add) if removed
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -545,7 +547,6 @@ const page = () => {
                             className="text-sm py-1 px-4 border bg-white font-medium rounded-xl text-black transition duration-150"
                             onClick={() => {
                               setAddMembersPopup(true);
-
                               setSelectedTeam({
                                 id: d?.id,
                                 name: d?.name,
@@ -560,7 +561,7 @@ const page = () => {
                               });
                             }}
                           >
-                            Add
+                            {d?.creator.id === data?.id ? "Add" : "View"}
                           </button>
                         </div>
                       </TableCell>

@@ -1,7 +1,7 @@
 "use client";
 import { useAuthContext } from "@/app/(utilities)/utils/auth";
 import { API } from "@/app/(utilities)/utils/config";
-import { errorHandler } from "@/app/(utilities)/utils/helpers";
+import { errorHandler, formatDate } from "@/app/(utilities)/utils/helpers";
 import axios from "axios";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -14,9 +14,13 @@ import { RxCrossCircled } from "react-icons/rx";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import {
+  addTask,
+  addTeamTask,
   fetchTasksFailure,
   fetchTasksStart,
   fetchTasksSuccess,
+  updateTask,
+  updateTeamTask,
 } from "@/app/redux/slices/tasksSlice";
 
 export default function TasksLayout({
@@ -39,11 +43,34 @@ export default function TasksLayout({
       return;
     }
     try {
+      const taskData = {
+        id: "12345",
+        text: task,
+        createdAt: new Date(),
+        creator: {
+          id: data?.id || "",
+          fullname: data?.fullname || "",
+          profilepic: data?.profilepic || "",
+          email: data?.email || "",
+        },
+        status: "pending",
+        temporary: true,
+        assignedTeams: [],
+      };
+      dispatch(addTask(taskData));
       const res = await axios.post(`${API}/createIndividualTask/${data?.id}`, {
         task,
         orgId: data?.organisationId,
       });
       if (res.data.success) {
+        const taskId = res.data.taskId;
+
+        // After getting the real taskId from the backend, update the task in Redux
+        const updatedTaskData = { ...taskData, id: taskId };
+
+        // Dispatch the updated task with the real taskId, replacing the old task
+        dispatch(updateTask(updatedTaskData));
+
         toast.success(res.data.message);
       } else {
         toast.error(res.data.message || "Something went wrong");
@@ -66,6 +93,21 @@ export default function TasksLayout({
       return;
     }
     try {
+      const taskData = {
+        id: "12345",
+        text: task,
+        createdAt: new Date(),
+        creator: {
+          id: data?.id || "",
+          fullname: data?.fullname || "",
+          profilepic: data?.profilepic || "",
+          email: data?.email || "",
+        },
+        status: "pending",
+        temporary: true,
+        assignedTeams: selectedTeams
+      };
+      dispatch(addTeamTask(taskData));
       const res = await axios.post(
         `${API}/createTeamTask/${data?.id}/${data?.organisationId}`,
         {
@@ -74,6 +116,11 @@ export default function TasksLayout({
         }
       );
       if (res.data.success) {
+        const taskId = res.data.taskId;
+        const updatedTaskData = { ...taskData, id: taskId, temporary: false };
+
+        // Dispatch the updated task with the real taskId to update the state in Redux
+        dispatch(updateTeamTask(updatedTaskData));
         toast.success(res.data.message);
       } else {
         toast.error(res.data.message || "Something went wrong");
@@ -88,7 +135,6 @@ export default function TasksLayout({
   };
 
   const handleTeamIdAddition = (id: string) => {
-    console.log(id);
     if (selectedTeams.includes(id)) {
       setSelectedTeams(selectedTeams.filter((teamId) => teamId !== id));
     } else {
@@ -196,7 +242,11 @@ export default function TasksLayout({
               </div>
               <div className="flex justify-center items-center font-medium gap-3 text-sm">
                 <button
-                  onClick={() => setTeamTasks(false)}
+                  onClick={() => {
+                    setTask("");
+                    setTeamTasks(false);
+                    setSelectedTeams([]);
+                  }}
                   className="text-center p-3 px-5 rounded-full w-full border "
                 >
                   Cancel

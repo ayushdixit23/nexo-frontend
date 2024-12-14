@@ -32,7 +32,7 @@ const Tasks = ({
         return null;
     }
   };
-
+  
   return (
     <div className={className}>
       <div className="flex justify-between items-center w-full">
