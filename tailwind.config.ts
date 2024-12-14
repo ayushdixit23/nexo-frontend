@@ -20,6 +20,9 @@ export default {
       txl: "1600px",
     },
     extend: {
+      boxShadow: {
+        'custom': '0 3px 5px rgba(91, 104, 113, 0.2)', // Custom shadow color with 30% opacity
+      },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",

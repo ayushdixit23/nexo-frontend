@@ -400,7 +400,7 @@ function page() {
                         key={index}
                         className={`flex flex-row ${
                           index % 2 === 0 ? "bg-[#EAECF0]" : "bg-white"
-                        } justify-evenly items-center w-full border-b-[1px] border-gray-200 h-[50px] text-center text-[#1E1E1E] `}
+                        } justify-evenly items-center w-full border-b-[1px] border-gray-200 h-[70px] text-center text-[#1E1E1E] `}
                       >
                         <div className="sm:w-[30%] w-[60%] text-left ml-4">
                           {truncatetext(item.filename || "", 20)}
@@ -411,7 +411,7 @@ function page() {
                         <div className="sm:w-[20%] w-[20%] text-left">
                           {formatDate(item.date || "")}
                         </div>
-                        <div className="sm:w-[20%] w-[20%] text-left">
+                        <div className="sm:w-[20%] md:mr-5 w-[20%] text-left">
                           <div className="flex items-center gap-3">
                             <div className="w-[40px] h-[40px] overflow-hidden">
                               <Image

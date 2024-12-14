@@ -8,6 +8,7 @@ import Link from "next/link";
 import { errorHandler } from "@/app/(utilities)/utils/helpers";
 import { API } from "@/app/(utilities)/utils/config";
 import axios from "axios";
+import NoComponent from "@/app/components/NoComponent";
 
 interface Data {
   id: string; // conversation._id is likely a string (ObjectId.toString())
@@ -90,18 +91,7 @@ const page = () => {
         ) : (
           <>
             <div className="flex justify-center items-center w-full h-full">
-              <div className="sm:w-[400px] sm:h-[400px] w-[90%] flex flex-col justify-center items-center">
-                <Image
-                  src={notasks}
-                  alt="notasks"
-                  className="w-full h-full object-contain"
-                />
-                <div className="flex justify-center items-center gap-3">
-                  <FaTasks />
-
-                  <div className=" font-semibold">No Chats Found</div>
-                </div>
-              </div>
+              <NoComponent src={notasks} text={"No Chats Found"} />
             </div>
           </>
         )}

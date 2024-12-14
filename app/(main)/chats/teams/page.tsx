@@ -9,6 +9,7 @@ import { errorHandler } from "@/app/(utilities)/utils/helpers";
 import axios from "axios";
 import { API } from "@/app/(utilities)/utils/config";
 import toast from "react-hot-toast";
+import NoComponent from "@/app/components/NoComponent";
 
 // Define the TeamMember interface for each member
 interface TeamMember {
@@ -22,10 +23,12 @@ interface TeamMember {
 interface Teams {
   id: string; // Team ID
   name: string; // Team name
-  lastMessage: {
-    message: string; // Last message content
-    createdAt: Date; // Timestamp
-  }; // Last message sent
+  lastMessage:
+    | {
+        message: string; // Last message content
+        createdAt: Date; // Timestamp
+      }
+    | "Start a conversation"; // Last message sent
   organisation: string; // Organisation ID as string (ObjectId in MongoDB is stored as a string)
   creator: string; // Creator ID (ObjectId in MongoDB)
   createdAt?: Date; // Optional: Timestamp when the team was created
@@ -39,7 +42,9 @@ const page = () => {
 
   const fetchTeams = async () => {
     try {
-      const res = await axios.get(`${API}/fetchTeams/${data?.id}/${data?.organisationId}`);
+      const res = await axios.get(
+        `${API}/fetchTeams/${data?.id}/${data?.organisationId}`
+      );
       if (res.data.success) {
         setTeams(res.data.data);
       } else {
@@ -83,7 +88,9 @@ const page = () => {
                       <div className="text-sm font-semibold">{team.name}</div>
 
                       <p className="text-xs font-medium text-muted-foreground">
-                        {team.lastMessage.message}
+                        {team.lastMessage?.message
+                          ? team.lastMessage?.message
+                          : "Start a conversation"}
                       </p>
                     </div>
                   </div>
@@ -94,18 +101,7 @@ const page = () => {
         ) : (
           <>
             <div className="flex justify-center items-center w-full h-full">
-              <div className="sm:w-[400px] sm:h-[400px] w-[90%] flex flex-col justify-center items-center">
-                <Image
-                  src={notasks}
-                  alt="notasks"
-                  className="w-full h-full object-contain"
-                />
-                <div className="flex justify-center items-center gap-3">
-                  <FaTasks />
-
-                  <div className=" font-semibold">No Chats Found</div>
-                </div>
-              </div>
+              <NoComponent src={notasks} text="No Teams Found" />
             </div>
           </>
         )}

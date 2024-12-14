@@ -1,11 +1,19 @@
+
+"use client";
 import React from "react";
-import Notasks from "../components/Notasks";
+import { useSelector } from "react-redux";
+import { RootState } from "@/app/redux/store";
+import TeamTasks from "../components/TeamTasks";
 
 const page = () => {
+  const { teams, error, loading } = useSelector(
+    (state: RootState) => state.tasks
+  );
+
   return (
     <>
-      <div className="flex justify-center items-center h-full">
-        <Notasks />
+      <div className="flex w-full h-full">
+        <TeamTasks teams={teams} isLoading={loading} />
       </div>
     </>
   );

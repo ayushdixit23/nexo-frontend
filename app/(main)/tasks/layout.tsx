@@ -1,13 +1,23 @@
 "use client";
 import { useAuthContext } from "@/app/(utilities)/utils/auth";
-import Image from "next/image";
+import { API } from "@/app/(utilities)/utils/config";
+import { errorHandler } from "@/app/(utilities)/utils/helpers";
+import axios from "axios";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import { BsPlus } from "react-icons/bs";
 import { MdOutlinePersonAddAlt1 } from "react-icons/md";
 import { RiSearch2Line } from "react-icons/ri";
 import { RxCrossCircled } from "react-icons/rx";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
+import {
+  fetchTasksFailure,
+  fetchTasksStart,
+  fetchTasksSuccess,
+} from "@/app/redux/slices/tasksSlice";
 
 export default function TasksLayout({
   children,
@@ -17,7 +27,106 @@ export default function TasksLayout({
   const path = usePathname();
   const { data } = useAuthContext();
   const [isMytasks, setIsMytasks] = useState(false);
+  const [task, setTask] = useState("");
   const [teamTasks, setTeamTasks] = useState(false);
+  const dispatch = useDispatch();
+  const [selectedTeams, setSelectedTeams] = useState([]);
+  const { teams } = useSelector((state: RootState) => state.tasks);
+
+  const sendIndividualTask = async () => {
+    if (task.trim() === "") {
+      toast.error("Task cannot be empty");
+      return;
+    }
+    try {
+      const res = await axios.post(`${API}/createIndividualTask/${data?.id}`, {
+        task,
+        orgId: data?.organisationId,
+      });
+      if (res.data.success) {
+        toast.success(res.data.message);
+      } else {
+        toast.error(res.data.message || "Something went wrong");
+      }
+    } catch (error) {
+      errorHandler(error);
+    } finally {
+      setTask("");
+      setIsMytasks(false);
+    }
+  };
+
+  const sendTeamTask = async () => {
+    if (task.trim() === "") {
+      toast.error("Task cannot be empty");
+      return;
+    }
+    if (selectedTeams.length === 0) {
+      toast.error("Select at least one team");
+      return;
+    }
+    try {
+      const res = await axios.post(
+        `${API}/createTeamTask/${data?.id}/${data?.organisationId}`,
+        {
+          task,
+          selectedTeams,
+        }
+      );
+      if (res.data.success) {
+        toast.success(res.data.message);
+      } else {
+        toast.error(res.data.message || "Something went wrong");
+      }
+    } catch (error) {
+      errorHandler(error);
+    } finally {
+      setTask("");
+      setTeamTasks(false);
+      setSelectedTeams([]);
+    }
+  };
+
+  const handleTeamIdAddition = (id: string) => {
+    console.log(id);
+    if (selectedTeams.includes(id)) {
+      setSelectedTeams(selectedTeams.filter((teamId) => teamId !== id));
+    } else {
+      setSelectedTeams([...selectedTeams, id]);
+    }
+  };
+
+  const fetchTasks = async () => {
+    dispatch(fetchTasksStart()); // Dispatch loading state
+    try {
+      const response = await axios.get(
+        `${API}/fetchTasks/${data?.id}/${data?.organisationId}`
+      );
+
+      if (response.data.success) {
+        dispatch(
+          fetchTasksSuccess({
+            mytasks: response.data.mytasks,
+            teams: response.data.teams,
+          })
+        ); // Dispatch success with the data
+      } else {
+        dispatch(fetchTasksFailure("Failed to fetch tasks."));
+      }
+    } catch (error: any) {
+      dispatch(fetchTasksFailure(error.message)); // Dispatch error state
+      errorHandler(error);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch tasks when the component mounts
+
+    if (data?.id && data?.organisationId) {
+      fetchTasks();
+    }
+  }, []);
+
   return (
     <>
       {isMytasks && (
@@ -37,6 +146,8 @@ export default function TasksLayout({
                 name=""
                 cols={30}
                 rows={10}
+                value={task}
+                onChange={(e) => setTask(e.target.value)}
                 className="w-full min-h-[150px] h-[150px] max-h-[200px] rounded-xl border p-2 text-sm border-[#FFC977] shadow-md outline-none"
                 id=""
               ></textarea>
@@ -48,7 +159,10 @@ export default function TasksLayout({
               >
                 Cancel
               </button>
-              <button className="text-center p-3 px-5 rounded-full w-full bg-[#FFC248]">
+              <button
+                onClick={sendIndividualTask}
+                className="text-center p-3 px-5 rounded-full w-full bg-[#FFC248]"
+              >
                 Save Task
               </button>
             </div>
@@ -73,6 +187,8 @@ export default function TasksLayout({
                 <textarea
                   name=""
                   cols={30}
+                  value={task}
+                  onChange={(e) => setTask(e.target.value)}
                   rows={10}
                   className="w-full min-h-[150px] h-[150px] max-h-[200px] rounded-xl border p-2 text-sm border-[#FFC977] shadow-md outline-none"
                   id=""
@@ -85,7 +201,10 @@ export default function TasksLayout({
                 >
                   Cancel
                 </button>
-                <button className="text-center p-3 px-5 rounded-full w-full bg-[#FFC248]">
+                <button
+                  onClick={sendTeamTask}
+                  className="text-center p-3 px-5 rounded-full w-full bg-[#FFC248]"
+                >
                   Save Task
                 </button>
               </div>
@@ -106,23 +225,53 @@ export default function TasksLayout({
                   <RiSearch2Line className="text-black text-[20px] mr-2" />
                 </div>
                 <div className="w-full flex mt-2 flex-col gap-5 overflow-y-scroll no-scrollbar max-h-[150px]">
-                  {[...Array(4)].map((_, index) => (
-                    <div key={index} className="flex w-full items-center gap-3">
-                      <div className="w-[40px] h-[40px] overflow-hidden">
-                        <Image
-                          className="w-full h-full cursor-pointer object-cover shadow-sm rounded-full"
-                          src={data?.profilepic ? data?.profilepic : ""}
-                          alt={data?.fullname ? data?.fullname : ""}
-                          width={40}
-                          height={40}
-                        />
-                      </div>
+                  <>
+                    {teams.length > 0 ? (
+                      <>
+                        {teams?.map((team, index) => {
+                          return (
+                            <div
+                              onClick={() => handleTeamIdAddition(team.id)}
+                              className={`rounded-xl ${
+                                selectedTeams.includes(team.id)
+                                  ? "bg-[#FFC977]"
+                                  : "bg-white"
+                              } flex justify-between items-center`}
+                              key={index}
+                            >
+                              <div className="flex py-2 px-3 items-center gap-1">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-[40px] h-[40px] flex justify-center items-center rounded-full bg-yellow-500 overflow-hidden">
+                                    <div className="text-white font-semibold">
+                                      {team?.name.charAt(0).toUpperCase()}
+                                    </div>
+                                  </div>
+                                </div>
 
-                      <div className="text-sm font-semibold">
-                        {data?.fullname}
-                      </div>
-                    </div>
-                  ))}
+                                <div className="space-y-0.5">
+                                  <div className="text-sm font-semibold">
+                                    {team.name}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-center items-center w-full h-full">
+                          <div className="w-[90%] flex flex-col justify-center items-center">
+                            <div className="flex justify-center items-center gap-3">
+                              <div className=" font-semibold">
+                                No Teams Found{" "}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </>
 
                   {/* <div className="flex w-full items-center gap-3">
                     <div className="w-[40px] h-[40px] overflow-hidden">
@@ -146,7 +295,7 @@ export default function TasksLayout({
         </div>
       )}
 
-      <div className={`flex flex-col h-full`}>
+      <div className={`flex flex-col gap-6 h-full`}>
         <div className="sm:h-[9%]">
           <div className="flex bg-white rounded-xl justify-between p-3 sm:p-4 border-b items-center w-full">
             <div className="flex justify-center items-center gap-2 sm:gap-6">
@@ -189,7 +338,8 @@ export default function TasksLayout({
             </div>
           </div>
         </div>
-        <div className="sm:h-[91%] flex justify-center items-center h-full">
+
+        <div className="sm:h-[91%] overflow-y-scroll no-scrollbar max-h-full flex justify-center items-center h-full">
           {children}
         </div>
       </div>

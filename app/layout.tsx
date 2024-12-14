@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthContextProvider } from "./(utilities)/utils/auth";
 import { Toaster } from "react-hot-toast";
 import { SocketContextProvider } from "./(utilities)/utils/socket";
+import Providers from "./redux/Providers";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -32,10 +33,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} select-none antialiased`}
       >
         <AuthContextProvider>
-          <SocketContextProvider>
-            <Toaster />
-            {children}
-          </SocketContextProvider>
+          <Providers>
+            <SocketContextProvider>
+              <Toaster />
+              {children}
+            </SocketContextProvider>
+          </Providers>
         </AuthContextProvider>
       </body>
     </html>
