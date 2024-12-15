@@ -21,19 +21,18 @@ export const truncatetext = (text: string, limit: number) => {
 };
 
 export const formatDate = (date: Date): string => {
-  const options = { 
-    day: '2-digit', 
-    month: 'short', 
-    year: 'numeric' 
+  const options = {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   };
-  
-  return new Date(date).toLocaleDateString('en-GB', options);  // 'en-GB' gives us day month year format
+
+  return new Date(date).toLocaleDateString("en-GB", options); // 'en-GB' gives us day month year format
 };
 
-
-export function groupMessagesByDate(messages) {
-  return messages.reduce((acc, msg) => {
-    const dateStr = new Date(msg.date).toISOString().split('T')[0]; // Extract date in YYYY-MM-DD format
+export function groupMessagesByDate(messages: any) {
+  return messages.reduce((acc: any, msg: any) => {
+    const dateStr = new Date(msg.date).toISOString().split("T")[0]; // Extract date in YYYY-MM-DD format
     if (!acc[dateStr]) {
       acc[dateStr] = [];
     }
