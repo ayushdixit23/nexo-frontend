@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { useAuthContext } from "../(utilities)/utils/auth";
 import {
   Bolt,
@@ -8,48 +8,23 @@ import {
   MessageSquare,
   Users,
 } from "lucide-react";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import ImageViewer from "./ImageViewer";
+import UserProfile from "./UserProfile";
 
-const Sidebar = () => {
+const Sidebar = ({ path }: { path: string }) => {
   const { data } = useAuthContext();
-  const [isClicked, setIsClicked] = useState(false);
-  const path = usePathname();
   return (
     <>
-      {isClicked && (
-        <ImageViewer
-          setIsClicked={setIsClicked}
-          src={data?.profilepic ? data?.profilepic : ""}
-          alt={data?.fullname ? data?.fullname : ""}
-        />
-      )}
       <div className="w-full h-full justify-center items-center flex flex-col bg-[#FFFBF3]">
         <div className="h-[95%] w-[95%] flex flex-col justify-between p-4">
           <div className="flex flex-col gap-10">
             <div className="w-full flex items-center">
-              <div className="flex items-center gap-3">
-                <div className="w-[40px] h-[40px] overflow-hidden">
-                  <Image
-                    onClick={() => setIsClicked(true)}
-                    className="w-full h-full cursor-pointer object-cover shadow-sm rounded-full"
-                    src={data?.profilepic ? data?.profilepic : ""}
-                    alt={data?.fullname ? data?.fullname : ""}
-                    width={40}
-                    height={40}
-                  />
-                </div>
-
-                <div className="space-y-0.5">
-                  <div className="text-sm font-semibold">{data?.fullname}</div>
-
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {data?.email}
-                  </p>
-                </div>
-              </div>
+              <UserProfile
+                userName={data?.fullname ? data?.fullname : ""}
+                userPic={data?.profilepic ? data?.profilepic : ""}
+                paraText={data?.email ? data?.email : ""}
+              />
             </div>
 
             <div className="flex flex-col mt-7">

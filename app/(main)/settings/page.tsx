@@ -47,13 +47,13 @@ const page = () => {
       </div>
       <div className="flex w-full gap-5">
         <div
-          className={`sm:w-[28%] w-full ${isMobileView && type && "hidden"}`}
+          className={`md:w-[28%] sm:w-[35%] w-full ${isMobileView && type && "hidden"}`}
         >
           <SettingLayout data={data} handleLogOut={handleLogOut} />
         </div>
 
         <div
-          className={`sm:w-[72%] ${
+          className={`md:w-[72%] sm:w-[65%] ${
             isMobileView && !type && "pn:max-sm:hidden"
           } w-full rounded-xl flex bg-white justify-center items-center p-4 h-full`}
         >

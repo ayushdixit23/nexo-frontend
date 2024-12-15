@@ -93,7 +93,7 @@ const AccountSettings = ({
   };
 
   return (
-    <div className="sm:w-[60%] w-full flex justify-center gap-6 items-center flex-col">
+    <div className="w-full md:w-[60%] sm:w-[70%] flex justify-center gap-6 items-center flex-col">
       <div className="flex flex-col gap-3">
         <div className="flex justify-center items-center">
           {data?.profilepic ? (

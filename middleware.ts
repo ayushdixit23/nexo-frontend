@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const isUser = !!authToken;
 
   // Define restricted routes for logged-in users
-  const restrictedRoutes = ["/signup", "/login"];
+  const restrictedRoutes = ["/signup", "/login", "/"];
 
   const url = request.nextUrl.clone();
 
@@ -34,13 +34,6 @@ export const config = {
     "/tasks/:path*",
     "/storage",
     "/chats/:path*",
-    "/members"
+    "/members",
   ],
 };
-
-// import { NextResponse } from "next/server";
-// import { NextRequest } from "next/server";
-
-// export function middleware(request: NextRequest) {
-//     return NextResponse.next();
-// }

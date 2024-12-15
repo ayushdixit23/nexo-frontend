@@ -62,7 +62,7 @@ const TeamTasks = ({
                   {teams.map((team, index) => (
                     <div
                       key={index}
-                      className="bg-white w-full p-5 flex flex-col gap-4 rounded-xl max-h-[600px]"
+                      className="bg-white w-full p-4 sm:p-5 flex flex-col gap-4 rounded-xl max-h-[600px]"
                     >
                       <div className="flex justify-between items-center w-full">
                         <div className="rounded-xl">

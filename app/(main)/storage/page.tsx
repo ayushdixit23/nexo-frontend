@@ -12,13 +12,15 @@ import {
   formatDate,
   truncatetext,
 } from "@/app/(utilities)/utils/helpers";
-import { RxCross2 } from "react-icons/rx";
-import { IoCloudUpload } from "react-icons/io5";
-import Image from "next/image";
 import uploadFile from "@/app/(utilities)/utils/uploadfile";
 import { useAuthContext } from "@/app/(utilities)/utils/auth";
+import UserProfile from "@/app/components/UserProfile";
+import UploadModal from "./components/UploadModal";
+import DeleteFile from "./components/DeleteFile";
 
-interface Storage {
+export interface Storage {
+  id: string;
+  _id?: string;
   orgid: string | undefined;
   userid: {
     email: string | undefined;
@@ -42,6 +44,8 @@ function page() {
   const [searchTerm, setSearchTerm] = useState(""); // State for search term
   const [filestorage, setFilestorage] = useState<number | null>(null);
   const [filteredStorage, setFilteredStorage] = useState(storage); // State for filtered storage
+  const [selectedStorage, setSelectedStorage] = useState<Storage | null>(null);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return; // Check if files is null or empty
@@ -73,8 +77,6 @@ function page() {
   const calculateWidthPercentage = (fileStorage: number) => {
     const limitInKB = 10 * 1024 * 1024; // 10 GB in KB
     const widthPercentage = (fileStorage / limitInKB) * 100;
-
-    // Ensure width percentage does not exceed 100%
     return Math.min(widthPercentage, 100);
   };
 
@@ -119,6 +121,8 @@ function page() {
           setStorage((prevStorage) => [
             ...prevStorage,
             {
+              _id: res.data.storageId,
+              id: res.data.storageId,
               orgid: data?.organisationId,
               userid: {
                 email: data?.email,
@@ -135,6 +139,8 @@ function page() {
           setFilteredStorage((prevStorage) => [
             ...prevStorage,
             {
+              _id: res.data.storageId,
+              id: res.data.storageId,
               orgid: data?.organisationId,
               userid: {
                 email: data?.email,
@@ -167,8 +173,8 @@ function page() {
   };
 
   const getStorage = async () => {
-    setLoading(true)
-   
+    setLoading(true);
+
     try {
       const res = await axios.get(
         `${API}/fetchStorage/${data?.organisationId}`
@@ -182,13 +188,15 @@ function page() {
       }
     } catch (error) {
       errorHandler(error);
-    }finally{
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    getStorage();
+    if (data?.organisationId) {
+      getStorage();
+    }
   }, []);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,93 +213,77 @@ function page() {
         storage.filter(
           (item) => item?.filename?.toLowerCase().includes(term) // Assuming each storage item has a 'name' property
         );
+
       setFilteredStorage(filtered);
+    }
+  };
+
+  const handleDeleteStorage = async () => {
+    try {
+      const res = await axios.delete(
+        `${API}/deleteStorage/${data?.id}/${selectedStorage?.id}/${data?.organisationId}`
+      );
+      if (res.data.success) {
+        setStorage((prevStorage) =>
+          prevStorage.filter((item) => item._id !== selectedStorage?.id)
+        );
+        setFilteredStorage((prevStorage) =>
+          prevStorage.filter((item) => item._id !== selectedStorage?.id)
+        );
+        if (selectedStorage?.size) {
+          setFilestorage((prev) => (prev || 0) - selectedStorage?.size);
+        }
+        toast.success("File deleted successfully!");
+      } else {
+        toast.error(res.data.message || "Something went wrong");
+      }
+    } catch (error) {
+      errorHandler(error);
+    } finally {
+      setSelectedStorage(null);
+      setOpenDeleteModal(false);
+    }
+  };
+
+  const handleDownloadFile = async (id: string, key: string) => {
+    try {
+      const response = await axios.get(`${API}/generate-download-url/${id}`);
+
+      console.log(response.data);
+      const downloadUrl = response.data.downloadUrl;
+
+      // Trigger the download by creating an anchor tag and clicking it
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = key; // Optional: Set the filename for download
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (error) {
+      errorHandler(error);
     }
   };
 
   return (
     <>
       {uploadpop && (
-        <div className="fixed inset-0 bg-[#C0C0C0]/50 flex justify-center items-center">
-          <div className="bg-[#FFF8EB] p-4 rounded-xl w-[30%]">
-            <div className="flex justify-between">
-              <h2 className="text-[15px] text-[#1E1E1E] font-semibold mb-2">
-                Upload File Here
-              </h2>
-              <RxCross2
-                onClick={() => {
-                  setUploadPop(false);
-                  setFile(null);
-                }}
-                className="cursor-pointer text-[#F13E3E]"
-              />
-            </div>
-            <div className="flex flex-col items-center justify-center rounded-xl border  w-full h-[150px] border-gray-200">
-              <div className="flex flex-col items-center justify-center w-full h-full">
-                {file ? (
-                  <div className="text-[13px] flex-col flex justify-center items-center">
-                    {/* <MdDriveFolderUpload className="text-[20px]"/> */}
-                    <div className="w-[100px] h-[100px]">
-                      <Image
-                        src={
-                          file.type.split("/")[0] === "image"
-                            ? URL.createObjectURL(file)
-                            : ""
-                        }
-                        width={100}
-                        height={100}
-                        alt={file.name}
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    <div>{file && file.name}</div>
-                  </div>
-                ) : (
-                  <label
-                    htmlFor="uploadfile"
-                    className="w-full h-full cursor-pointer flex items-center justify-center"
-                  >
-                    <div className="w-full h-full flex items-center justify-center">
-                      <IoCloudUpload className="text-2xl text-gray-400" />
-                    </div>
-                  </label>
-                )}
-              </div>
-            </div>
-            <input
-              type="file"
-              id="uploadfile"
-              onChange={handleFileChange}
-              className="w-full h-[100px] border rounded-md hidden px-2 bg-red-500"
-            />
-            {file && (
-              <button
-                disabled={uploading}
-                onClick={handleUpload}
-                className="rounded-lg bg-[#FFC248] text-white text-sm py-1 px-3 font-bold mt-3"
-              >
-                {uploading ? "Uploading..." : "Upload"}
-              </button>
-            )}
+        <UploadModal
+          file={file}
+          setFile={setFile}
+          uploading={uploading}
+          progress={progress}
+          handleFileChange={handleFileChange}
+          handleUpload={handleUpload}
+          setUploadPop={setUploadPop}
+        />
+      )}
 
-            {uploading && (
-              <div className="w-full mt-4">
-                <div className="bg-gray-200 h-2 rounded-full">
-                  <div
-                    className="bg-[#FFC248] h-2 rounded-full"
-                    style={{ width: `${progress}%` }}
-                  ></div>
-                </div>
-                <div className="text-center text-sm mt-2">
-                  {Math.round(progress)}%
-                </div>
-              </div>
-            )}
-            <p className="text-gray-500 text-[12px] mt-2">
-              Max 2 GB files are allowed
-            </p>
-          </div>
-        </div>
+      {openDeleteModal && (
+        <DeleteFile
+          handleDeleteStorage={handleDeleteStorage}
+          selectedStorage={selectedStorage}
+          setOpenDeleteModal={setOpenDeleteModal}
+        />
       )}
 
       <div className="w-full h-auto">
@@ -307,7 +299,7 @@ function page() {
               />
               <RiSearch2Line className="text-black text-[20px] mr-2" />
             </div>
-            {/* Storage used */}
+
             <div className="w-[45%] pn:max-sm:w-[100%] h-auto sm:h-[50px] flex flex-col items-center justify-center">
               <div className="flex flex-row items-center  w-[100%]">
                 <div className="px-2 w-full flex flex-col gap-1">
@@ -339,7 +331,7 @@ function page() {
             </div>
           </div>
 
-          <div className="overflow-auto mt-2  text-[#5A5A5A] text-[14px] scrollbar-hide h-full bg-white rounded-lg w-[100%] flex flex-col items-center">
+          {/* <div className="overflow-auto mt-2  text-[#5A5A5A] text-[14px] scrollbar-hide h-full bg-white rounded-lg w-[100%] flex flex-col items-center">
             <div className="w-full h-[50px] flex flex-row px-5 sm:px-2  justify-between items-center ">
               <div className=" h-[100%] flex justify-between items-center">
                 <div className="text-[#1e1e1e] text-[14px] sm:ml-4 font-semibold">
@@ -357,7 +349,7 @@ function page() {
               </div>
             </div>
 
-            {/* File List */}
+          
             <div className="flex flex-row pn:max-sm:hidden w-[100%] h-[50px] items-center justify-evenly font-bold">
               <div className="flex items-center sm:w-[30%] w-[60%] text-left ml-4">
                 File Name
@@ -398,7 +390,7 @@ function page() {
                     {filteredStorage.map((item, index) => (
                       <div
                         key={index}
-                        className={`flex flex-row ${
+                        className={`flex flex-row  ${
                           index % 2 === 0 ? "bg-[#EAECF0]" : "bg-white"
                         } justify-evenly items-center w-full border-b-[1px] border-gray-200 h-[70px] text-center text-[#1E1E1E] `}
                       >
@@ -465,9 +457,142 @@ function page() {
                 )}
               </>
             )}
-          </div>
+          </div> */}
 
-          
+          <div className=" mt-2 text-[#5A5A5A] text-[14px] scrollbar-hide h-full bg-white rounded-lg w-[100%] flex flex-col items-center">
+            <div className="w-full flex flex-row px-5 border-b py-3 sm:px-2 justify-between items-center ">
+              <div className="h-[100%] flex justify-between items-center">
+                <div className="text-[#1e1e1e] text-[14px] sm:ml-4 font-semibold">
+                  Files uploaded
+                </div>
+              </div>
+              <div className="space-x-3 h-[100%] flex flex-row items-center justify-evenly">
+                <div
+                  onClick={() => setUploadPop(true)}
+                  className="p-2 sm:mr-5 flex flex-row rounded-xl cursor-pointer border-2 text-[12px] text-white bg-[#FFC248] border-[#FFC248] justify-evenly items-center font-semibold"
+                >
+                  <CloudUpload size={15} />
+                  <div className="mx-2 pn:max-sm:hidden">Upload</div>
+                </div>
+              </div>
+            </div>
+
+            {/* File Table */}
+            <div className="overflow-x-auto max-w-full w-full">
+              <table
+                className={`w-full table-auto min-w-[900px] ${
+                  loading && "border-separate border-spacing-4"
+                }`}
+              >
+                <thead className="h-[60px]">
+                  <tr>
+                    <th className="px-4 py-2 text-left text-sm font-semibold text-[#1E1E1E]">
+                      File Name
+                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-semibold text-[#1E1E1E]">
+                      File Size
+                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-semibold text-[#1E1E1E]">
+                      Date Uploaded
+                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-semibold text-[#1E1E1E]">
+                      Uploaded By
+                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-semibold text-[#1E1E1E]">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    [...Array(7)].map((_, index) => (
+                      <>
+                        <tr key={index} className="bg-white">
+                          <td
+                            colSpan={5}
+                            className="px-4 py-3 animate-pulse bg-gray-200 rounded-xl text-center h-[60px] text-[#1e1e1e] text-[14px] font-semibold"
+                          >
+                            {/* Content here */}
+                          </td>
+                        </tr>
+                        {/* Add more rows as needed */}
+                      </>
+                    ))
+                  ) : filteredStorage.length > 0 ? (
+                    filteredStorage.map((item, index) => (
+                      <tr
+                        key={index}
+                        className={`${
+                          index % 2 === 0 ? "bg-[#EAECF0]" : "bg-white"
+                        } border-b-[1px] h-[60px] border-gray-200 text-[#1E1E1E]`}
+                      >
+                        <td className="px-4 py-3 text-left">
+                          {truncatetext(item.filename || "", 20)}
+                        </td>
+                        <td className="px-4 py-3 text-left">
+                          {convertFromBytes(item.size)}
+                        </td>
+                        <td className="px-4 py-3 text-left">
+                          {formatDate(item.date || "")}
+                        </td>
+                        <td className="px-4 py-3 text-left">
+                          <UserProfile
+                            userName={
+                              item.userid.fullname ? item.userid.fullname : ""
+                            }
+                            userPic={
+                              item.userid.profilepic
+                                ? item.userid.profilepic
+                                : ""
+                            }
+                            paraText={
+                              item.userid.email ? item.userid.email : ""
+                            }
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-left">
+                          <div className="flex gap-2 text-left">
+                            <MdDeleteOutline
+                              onClick={() => {
+                                setSelectedStorage({
+                                  ...item,
+                                  id: item._id || "",
+                                });
+                                setOpenDeleteModal(true);
+                              }}
+                              className="text-[18px] cursor-pointer text-[#F13E3E]"
+                            />
+                            <div
+                              onClick={() =>
+                                handleDownloadFile(
+                                  item._id || "",
+                                  item.filename || ""
+                                )
+                              }
+                              className="text-[18px] cursor-pointer text-blue-600"
+                            >
+                              <HiDownload />
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="px-4 py-3 text-center h-[200px] text-[#1e1e1e] text-[14px] font-semibold"
+                      >
+                        {searchTerm
+                          ? "No files found"
+                          : "No files uploaded yet"}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </>

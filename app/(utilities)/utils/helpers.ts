@@ -29,3 +29,15 @@ export const formatDate = (date: Date): string => {
   
   return new Date(date).toLocaleDateString('en-GB', options);  // 'en-GB' gives us day month year format
 };
+
+
+export function groupMessagesByDate(messages) {
+  return messages.reduce((acc, msg) => {
+    const dateStr = new Date(msg.date).toISOString().split('T')[0]; // Extract date in YYYY-MM-DD format
+    if (!acc[dateStr]) {
+      acc[dateStr] = [];
+    }
+    acc[dateStr].push(msg);
+    return acc;
+  }, {});
+}

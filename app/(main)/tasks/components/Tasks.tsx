@@ -21,10 +21,11 @@ import { useAuthContext } from "@/app/(utilities)/utils/auth";
 import { API } from "@/app/(utilities)/utils/config";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
+import UserProfile from "@/app/components/UserProfile";
 
 const Tasks = ({
   d,
-  className = "bg-white flex flex-col gap-4 p-6 rounded-xl",
+  className = "bg-white flex flex-col gap-4 p-4 sm:p-6 rounded-xl",
 }: {
   d: Task;
   className?: string;
@@ -89,7 +90,7 @@ const Tasks = ({
     <>
       {isOpen && (
         <div className="fixed inset-0 flex z-40 justify-center items-center h-screen bg-black/60 backdrop:blur-md">
-          <div className="md:w-1/3 rounded-lg shadow-lg bg-white my-3">
+          <div className="md:w-1/3 w-[90%] pp:w-[70%] rounded-lg shadow-lg bg-white my-3">
             <div className="flex justify-between border-b border-gray-100 px-4 py-3">
               <div>
                 <span className="font-semibold text-gray-700 text-lg">
@@ -127,32 +128,18 @@ const Tasks = ({
 
       <div className={className}>
         <div className="flex justify-between items-center w-full">
-          <div className="flex items-center gap-3">
-            <div className="w-[45px] h-[45px] overflow-hidden">
-              <Image
-                className="w-full h-full cursor-pointer object-cover shadow-sm rounded-full"
-                src={d?.creator.profilepic}
-                alt={d?.creator.fullname}
-                width={45}
-                height={45}
-              />
-            </div>
-
-            <div className="space-y-0.5">
-              <div className="text-sm font-semibold">{d?.creator.fullname}</div>
-
-              <p className="text-xs font-medium text-muted-foreground">
-                {d?.creator.email}
-              </p>
-            </div>
-          </div>
+          <UserProfile
+            userName={d?.creator.fullname ? d?.creator.fullname : ""}
+            userPic={d?.creator.profilepic ? d?.creator.profilepic : ""}
+            paraText={d?.creator.email ? d?.creator.email : ""}
+          />
           <div>{formatDate(d?.createdAt)}</div>
         </div>
-        <div className="flex justify-between p-4 shadow-custom bg-[#FFF8EB] rounded-lg text-[#252C32] items-center">
+        <div className="flex justify-between p-2 sm:p-4 shadow-custom bg-[#FFF8EB] rounded-lg text-[#252C32] items-center">
           <div className="font-semibold">{d?.text}</div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="p-1 px-4 rounded-2xl" variant="outline">
+              <Button className="p-1 px-4 text-xs rounded-2xl" variant="outline">
                 {d?.status}
                 <ChevronDown
                   className="opacity-60"
@@ -161,7 +148,7 @@ const Tasks = ({
                 />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="rounded-xl">
+            <DropdownMenuContent className="rounded-xl text-xs\">
               <DropdownMenuItem
                 onClick={() => {
                   if (d?.status === "pending") {

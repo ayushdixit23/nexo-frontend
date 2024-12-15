@@ -14,7 +14,7 @@ const NoComponent: React.FC<NoComponentProps> = ({
   icon = <FaTasks />,
 }) => {
   return (
-    <div className="sm:w-[400px] sm:h-[400px] w-[90%] flex flex-col justify-center items-center">
+    <div className="sm:w-[400px] w-[250px] h-[250px] sm:h-[400px] flex flex-col justify-center items-center">
       <Image src={src} alt={text} className="w-full h-full object-contain" />
       <div className="flex justify-center items-center gap-3">
         {icon}

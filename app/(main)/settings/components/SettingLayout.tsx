@@ -103,7 +103,7 @@ const SettingLayout = ({ data, handleLogOut }: Props) => {
     <>
       {isOpen && (
         <div className="fixed inset-0 flex z-40 justify-center items-center h-screen bg-black/60 backdrop:blur-md">
-          <div className="md:w-1/3 rounded-lg shadow-lg bg-white my-3">
+          <div className="md:w-[30%] w-[90%] pp:w-[70%] rounded-lg shadow-lg bg-white my-3">
             <div className="flex justify-between border-b border-gray-100 px-4 py-3">
               <div>
                 <span className="font-semibold text-gray-700 text-lg">

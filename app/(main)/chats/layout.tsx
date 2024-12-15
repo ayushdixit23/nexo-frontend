@@ -45,10 +45,8 @@ export default function ChatsLayout({
 
         <div
           className={`${
-            path === "/chats/teams" || path === "/chats"
-              ? "sm:h-[91%] "
-              : "h-full"
-          } overflow-y-scroll no-scrollbar`}
+            path === "/chats/teams" || path === "/chats" ? "sm:h-[91%] " : ""
+          } overflow-y-scroll h-full no-scrollbar`}
         >
           {children}
         </div>
