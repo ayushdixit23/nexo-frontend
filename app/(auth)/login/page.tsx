@@ -95,7 +95,6 @@ const page = () => {
               res.data.data.organisationId
             );
           }
-
           timer = setTimeout(() => {
             setIsLoading(false);
           }, 6000);

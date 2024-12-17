@@ -6,7 +6,7 @@ import { RootState } from "@/app/redux/store";
 import TeamTasks from "../components/TeamTasks";
 
 const page = () => {
-  const { teams, error, loading } = useSelector(
+  const { teams, loading } = useSelector(
     (state: RootState) => state.tasks
   );
 

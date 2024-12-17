@@ -47,6 +47,32 @@ const page = () => {
     e.preventDefault();
     let timer;
     setIsLoading(true);
+
+    if (!user.fullname) {
+      toast.error("Full name is required");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!user.email) {
+      toast.error("Email is required");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!user.password) {
+      toast.error("Password is required");
+      setIsLoading(false);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(user.email)) {
+      toast.error("Please enter a valid email address.");
+      setIsLoading(false);
+      return; // Exit the function if the email is invalid
+    }
+
     try {
       const formData = new FormData();
       formData.append("fullname", user.fullname);
@@ -61,7 +87,7 @@ const page = () => {
         const expires = new Date();
         expires.setTime(expires.getTime() + 15 * 24 * 60 * 60 * 1000); // 15 days in milliseconds
         Cookies.set("token", res.data.token, { expires });
-        
+
         router.push("/action");
         setData(res.data.data);
       } else {

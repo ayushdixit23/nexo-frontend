@@ -8,7 +8,7 @@ import React, {
   useState,
 } from "react";
 import axios from "axios";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { API } from "./config";
 
@@ -17,6 +17,8 @@ interface AuthContextType {
   auth: boolean;
   setAuth: React.Dispatch<React.SetStateAction<boolean>>;
   setData: React.Dispatch<React.SetStateAction<UserData | null>>;
+  isIndividual: boolean;
+  setIsIndividual: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 // Provide a default value for the context
@@ -25,6 +27,8 @@ const defaultAuthContext: AuthContextType = {
   auth: false,
   setAuth: () => {},
   setData: () => {},
+  isIndividual: false,
+  setIsIndividual: () => {},
 };
 
 export const AuthContext = createContext<AuthContextType>(defaultAuthContext);
@@ -33,7 +37,7 @@ export const useAuthContext = () => {
   return useContext(AuthContext);
 };
 
-interface UserData {
+export interface UserData {
   id: string;
   fullname: string;
   profilepic: string;
@@ -49,13 +53,15 @@ export const AuthContextProvider = ({
   const [auth, setAuth] = useState(false);
   const [data, setData] = useState<UserData | null>(null);
   const router = useRouter();
-  const path = usePathname();
   const [loading, setLoading] = useState(true);
+  const [isIndividual, setIsIndividual] = useState(false);
 
   const deleteToken = () => {
     Cookies.remove("token");
     router.push("/login");
   };
+
+  console.log(data, "data", auth, "auth", isIndividual, "isIndividual");
 
   const sendTokenAndVerify = async () => {
     try {
@@ -68,18 +74,21 @@ export const AuthContextProvider = ({
       setLoading(true);
       const res = await axios.get(`${API}/auth/verifytoken`, {
         headers: {
-          Authorization: `Bearer ${token}`, // Ensure this header is set
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (res.data.success) {
         const dataToPut = res.data.data;
-
-        // Retrieve the stored organisationId
         const organisationId = localStorage.getItem("organisationId");
-
         if (organisationId) {
           dataToPut.organisationId = organisationId;
+        }
+
+        if (res.data.data.organisationId || organisationId) {
+          setIsIndividual(false);
+        } else {
+          setIsIndividual(true);
         }
 
         setData(dataToPut);
@@ -88,11 +97,10 @@ export const AuthContextProvider = ({
         deleteToken();
       }
     } catch (error: Error | any) {
-      if (path !== "/") {
-        if (error.response?.data?.error === "Token expired") {
-          toast.error(error.response.data.message);
-        }
+      if (error.response?.data?.error === "Token expired") {
+        toast.error(error.response.data.message);
       }
+
       deleteToken();
     } finally {
       setLoading(false);
@@ -109,6 +117,8 @@ export const AuthContextProvider = ({
       auth,
       setAuth,
       setData,
+      isIndividual,
+      setIsIndividual,
     }),
     [data, auth]
   );

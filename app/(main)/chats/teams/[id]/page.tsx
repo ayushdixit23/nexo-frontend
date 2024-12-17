@@ -7,7 +7,6 @@ import {
 } from "@/app/(utilities)/utils/helpers";
 import { useSocketContext } from "@/app/(utilities)/utils/socket";
 import axios from "axios";
-import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Chats from "../../components/Chats";
@@ -133,7 +132,6 @@ const page = () => {
   };
 
   useEffect(() => {
-
     socket?.emit("join-room", params?.id);
     if (socket) {
       socket?.on("receive-message", (data) => {

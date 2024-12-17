@@ -40,7 +40,7 @@ export const SocketContextProvider: React.FC<SocketContextProviderProps> = ({
 
     if (AUTH && data?.id) {
       // Ensure `data?.id` is available before connecting
-      const url = "http://192.168.1.5:7777/";
+      const url = "http://192.168.1.19:7777/";
       newSocket = io(url, {
         auth: { id: data?.id }, // Pass authentication info
         reconnectionAttempts: 100,

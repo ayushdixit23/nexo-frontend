@@ -15,14 +15,14 @@ import toast from "react-hot-toast";
 
 interface OrganisationState {
   name: string;
-  profilepic: string | File; // Profile pic can be a string (URL) or a File object
+  profilepic: string | File;
 }
 
 const page = () => {
   const searchParams = useSearchParams();
   const type = searchParams.get("type");
   const [code, setCode] = useState<string>("");
-  const { data, setData } = useAuthContext();
+  const { data, setData, setIsIndividual, setAuth } = useAuthContext();
   const router = useRouter();
   const [createOrganisation, setCreateOrganisation] =
     useState<OrganisationState>({
@@ -131,9 +131,16 @@ const page = () => {
             <div className="text-xs flex justify-center items-center font-semibold rounded-2xl text-black">
               OR
             </div>
-            {/* <button className="bg-[#FFC977] hover:bg-[#FFC977]/80 w-full focus:ring-4 focus:outline-none focus:ring-[#FFC977]/50 font-semibold rounded-lg text-sm px-5 py-2.5 text-center">
+            <div
+              onClick={() => {
+                setAuth(true);
+                setIsIndividual(true);
+                router.push("/tasks/mytasks");
+              }}
+              className="bg-[#FFC977] cursor-pointer hover:bg-[#FFC977]/80 w-full focus:ring-4 focus:outline-none focus:ring-[#FFC977]/50 font-semibold rounded-lg text-sm px-5 py-2.5 text-center"
+            >
               Continue as Individual
-            </button> */}
+            </div>
           </div>
         )}
 

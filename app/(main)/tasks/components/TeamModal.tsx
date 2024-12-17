@@ -23,8 +23,8 @@ const TeamModal = ({
   teams: any;
 }) => {
   return (
-    <div className="flex md:w-[30%] w-[90%] pp:w-[70%] sm:flex-row flex-col shadow-md gap-3 bg-[#FAF9F6] p-3 rounded-xl h-auto">
-      <div className="flex min-w-[300px] pn:max-sm:order-2 bg-white p-4 flex-col gap-5 rounded-xl">
+    <div className="grid ppmin-w-[90%] pp:min-w-[50%] md:w-auto sm:grid-cols-2  shadow-md gap-3 bg-[#FAF9F6] p-3 rounded-xl h-auto">
+      <div className="flex  md:min-w-[300px] pn:max-sm:order-2 bg-white p-4 flex-col gap-5 rounded-xl">
         <div className="flex justify-between py-1 items-center w-full">
           <div className="text-[#121212] font-semibold">Add New Task</div>
           <div className="cursor-pointer" onClick={() => setTeamTasks(false)}>
@@ -62,12 +62,12 @@ const TeamModal = ({
         </div>
       </div>
 
-      <div className=" flex min-w-[300px] pn:max-sm:order-1 flex-col gap-3 h-auto">
+      <div className=" flex w-full md:min-w-[300px] pn:max-sm:order-1 flex-col gap-3 h-full">
         <div className="flex p-4 rounded-xl bg-white items-center gap-2">
           <MdOutlinePersonAddAlt1 />
           <div>Assign task to</div>
         </div>
-        <div className="flex flex-col gap-4 justify-center p-4 px-3 rounded-xl bg-white items-center">
+        <div className="flex flex-col h-full gap-4 p-4 px-3 rounded-xl bg-white ">
           <div className="flex rounded-xl text-[12px] w-full bg-[#FFF8EB] items-center p-2">
             <input
               type="text"
@@ -76,7 +76,7 @@ const TeamModal = ({
             />
             <RiSearch2Line className="text-black text-[20px] mr-2" />
           </div>
-          <div className="w-full flex mt-2 flex-col gap-5 overflow-y-scroll no-scrollbar max-h-[150px]">
+          <div className="w-full flex mt-2 h-full flex-col gap-5 overflow-y-scroll no-scrollbar max-h-[150px]">
             <>
               {teams.length > 0 ? (
                 <>
@@ -113,8 +113,8 @@ const TeamModal = ({
               ) : (
                 <>
                   <div className="flex justify-center items-center w-full h-full">
-                    <div className="w-[90%] flex flex-col justify-center items-center">
-                      <div className="flex justify-center items-center gap-3">
+                    <div className="w-[90%] flex flex-col justify-center h-full items-center">
+                      <div className="flex justify-center items-center h-full gap-3">
                         <div className=" font-semibold">No Teams Found </div>
                       </div>
                     </div>

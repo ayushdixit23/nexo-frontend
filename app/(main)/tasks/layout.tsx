@@ -28,7 +28,7 @@ export default function TasksLayout({
   children: React.ReactNode;
 }>) {
   const path = usePathname();
-  const { data } = useAuthContext();
+  const { data, isIndividual } = useAuthContext();
   const [isMytasks, setIsMytasks] = useState(false);
   const [task, setTask] = useState("");
   const [teamTasks, setTeamTasks] = useState(false);
@@ -164,9 +164,36 @@ export default function TasksLayout({
     }
   };
 
+  const fetchIndividualTasks = async () => {
+    dispatch(fetchTasksStart()); // Dispatch loading state
+    try {
+      const response = await axios.get(
+        `${API}/fetchIndividualTasks/${data?.id}`
+      );
+
+      if (response.data.success) {
+        dispatch(
+          fetchTasksSuccess({
+            mytasks: response.data.tasks,
+            teams: [],
+          })
+        ); // Dispatch success with the data
+      } else {
+        dispatch(fetchTasksFailure("Failed to fetch tasks."));
+      }
+    } catch (error: any) {
+      dispatch(fetchTasksFailure(error.message)); // Dispatch error state
+      errorHandler(error);
+    }
+  };
+
   useEffect(() => {
-    if (data?.id && data?.organisationId) {
+    if (data?.id && data?.organisationId && !isIndividual) {
       fetchTasks();
+    }
+
+    if (data?.id && isIndividual) {
+      fetchIndividualTasks();
     }
   }, []);
 
@@ -205,21 +232,24 @@ export default function TasksLayout({
               <Link
                 href="/tasks/mytasks"
                 className={`${
-                  path === "/tasks/mytasks" &&
-                  "font-semibold border-b-4 border-[#FFC977]"
+                  path === "/tasks/mytasks" || isIndividual
+                    ? "font-semibold border-b-4 border-[#FFC977]"
+                    : ""
                 } text-[13px] sm:text-[17px] p-2`}
               >
                 My Tasks
               </Link>
-              <Link
-                href="/tasks/teamtasks"
-                className={`${
-                  path === "/tasks/teamtasks" &&
-                  "font-semibold border-b-4 border-[#FFC977]"
-                } text-[13px] sm:text-[17px] p-2`}
-              >
-                Team Tasks
-              </Link>
+              {!isIndividual && (
+                <Link
+                  href="/tasks/teamtasks"
+                  className={`${
+                    path === "/tasks/teamtasks" &&
+                    "font-semibold border-b-4 border-[#FFC977]"
+                  } text-[13px] sm:text-[17px] p-2`}
+                >
+                  Team Tasks
+                </Link>
+              )}
             </div>
 
             <div className="flex justify-center items-center gap-1">
@@ -228,7 +258,10 @@ export default function TasksLayout({
                   if (path.startsWith("/tasks/mytasks")) {
                     setIsMytasks(true);
                   }
-                  if (path.startsWith("/tasks/teamtasks")) {
+                  if (
+                    path.startsWith("/tasks/teamtasks") &&
+                    isIndividual === false
+                  ) {
                     setTeamTasks(true);
                   }
                 }}

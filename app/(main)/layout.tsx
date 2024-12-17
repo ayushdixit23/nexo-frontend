@@ -11,8 +11,6 @@ export default function MainLayout({
   children: React.ReactNode;
 }>) {
   const path = usePathname();
- // Check if we're on the main /chats or /chats/teams pages (without dynamic segments)
- const isChatPage = path === "/chats"; // Exact match for /chats
  const isTeamPage = path === "/chats/teams"; // Exact match for /chats/teams
 
  // Check if we're on dynamic chat or dynamic team pages (exclude base routes)
@@ -24,6 +22,7 @@ export default function MainLayout({
 
   return (
     <>
+    
       {!shouldHideTaskbar && <Taskbar pathname={path} />}
       <div className="w-screen h-screen bg-[#F6F6F6]">
         <div className="w-full h-full flex sm:flex-row flex-col justify-center items-center">

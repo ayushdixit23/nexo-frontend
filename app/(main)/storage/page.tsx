@@ -38,7 +38,7 @@ function page() {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [uploadpop, setUploadPop] = useState(false);
-  const { data } = useAuthContext();
+  const { data, isIndividual } = useAuthContext();
   const [storage, setStorage] = useState<Storage[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(""); // State for search term
@@ -62,9 +62,7 @@ function page() {
 
   function convertSize(sizeInBytes: number) {
     const sizeInKB = sizeInBytes / 1000;
-
     const sizeInMB = sizeInKB / 1000;
-
     const sizeInGB = sizeInMB / 1000;
 
     return {
@@ -74,8 +72,11 @@ function page() {
     };
   }
 
-  const calculateWidthPercentage = (fileStorage: number) => {
-    const limitInKB = 10 * 1024 * 1024; // 10 GB in KB
+  const calculateWidthPercentage = (
+    fileStorage: number,
+    sizeNumber: number
+  ) => {
+    const limitInKB = sizeNumber * 1024 * 1024;
     const widthPercentage = (fileStorage / limitInKB) * 100;
     return Math.min(widthPercentage, 100);
   };
@@ -96,7 +97,9 @@ function page() {
       const response = await axios.post(`${API}/generatePresignedUrl`, {
         filename: file.name,
         filetype: file.type,
-        orgId: data?.organisationId,
+        isIndividual: isIndividual,
+        userId: data?.id,
+        orgId: isIndividual ? undefined : data?.organisationId,
       });
       const { presignedUrl, uploadedFileName } = response.data; // Destructure the presigned URL from the response
 
@@ -107,14 +110,12 @@ function page() {
       });
 
       if (uploaded) {
-        const res = await axios.post(
-          `${API}/addStorage/${data?.id}/${data?.organisationId}`,
-          {
-            size: file.size,
-            filename: uploadedFileName,
-            filetype: file.type,
-          }
-        );
+        const res = await axios.post(`${API}/addStorage/${data?.id}`, {
+          orgId: isIndividual ? undefined : data?.organisationId,
+          size: file.size,
+          filename: uploadedFileName,
+          filetype: file.type,
+        });
         if (res.data.success) {
           const sizeInKb = Number(convertSize(file.size).kb);
 
@@ -123,7 +124,7 @@ function page() {
             {
               _id: res.data.storageId,
               id: res.data.storageId,
-              orgid: data?.organisationId,
+              orgid: isIndividual ? undefined : data?.organisationId,
               userid: {
                 email: data?.email,
                 fullname: data?.fullname,
@@ -141,7 +142,7 @@ function page() {
             {
               _id: res.data.storageId,
               id: res.data.storageId,
-              orgid: data?.organisationId,
+              orgid: isIndividual ? undefined : data?.organisationId,
               userid: {
                 email: data?.email,
                 fullname: data?.fullname,
@@ -193,9 +194,31 @@ function page() {
     }
   };
 
+  const getStorageIndividual = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${API}/fetchStorageIndividual/${data?.id}`);
+      if (res.data.success) {
+        setFilestorage(res.data.storageused);
+        setStorage(res.data?.storage);
+        setFilteredStorage(res.data?.storage);
+      } else {
+        toast.error(res.data.message || "Something went wrong");
+      }
+    } catch (error) {
+      errorHandler(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    if (data?.organisationId) {
+    if (data?.organisationId && !isIndividual) {
       getStorage();
+    }
+
+    if (data?.id && isIndividual) {
+      getStorageIndividual();
     }
   }, []);
 
@@ -218,10 +241,49 @@ function page() {
     }
   };
 
-  const handleDeleteStorage = async () => {
+  const handleOrgainsationDeleteStorage = async () => {
     try {
       const res = await axios.delete(
         `${API}/deleteStorage/${data?.id}/${selectedStorage?.id}/${data?.organisationId}`
+      );
+      if (res.data.success) {
+        setStorage((prevStorage) =>
+          prevStorage.filter((item) => item._id !== selectedStorage?.id)
+        );
+        setFilteredStorage((prevStorage) =>
+          prevStorage.filter((item) => item._id !== selectedStorage?.id)
+        );
+        if (selectedStorage?.size) {
+          setFilestorage((prev) => (prev || 0) - selectedStorage?.size);
+        }
+        toast.success("File deleted successfully!");
+      } else {
+        toast.error(res.data.message || "Something went wrong");
+      }
+    } catch (error) {
+      errorHandler(error);
+    } finally {
+      setSelectedStorage(null);
+      setOpenDeleteModal(false);
+    }
+  };
+
+  const handleDeleteStorage = async () => {
+    try {
+      if (isIndividual) {
+        await handleIndividualDeleteStorage();
+      } else {
+        await handleOrgainsationDeleteStorage();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleIndividualDeleteStorage = async () => {
+    try {
+      const res = await axios.delete(
+        `${API}/deleteStorage/${data?.id}/${selectedStorage?.id}`
       );
       if (res.data.success) {
         setStorage((prevStorage) =>
@@ -312,7 +374,7 @@ function page() {
                         {filestorage && convertFromBytes(filestorage)}
                       </div>
                       <div className="text-[#121212] text-[12px] w-[50%] justify-end flex">
-                        10 GB
+                        {isIndividual ? "5" : "10"} GB
                       </div>
                     </div>
                   </div>
@@ -320,7 +382,11 @@ function page() {
                     <div
                       style={{
                         width: `${
-                          filestorage && calculateWidthPercentage(filestorage)
+                          filestorage &&
+                          calculateWidthPercentage(
+                            filestorage,
+                            isIndividual ? 5 : 10
+                          )
                         }%`,
                       }}
                       className="absolute top-0 left-0 rounded-r-xl bg-[#08A0F7] h-full"
@@ -330,134 +396,6 @@ function page() {
               </div>
             </div>
           </div>
-
-          {/* <div className="overflow-auto mt-2  text-[#5A5A5A] text-[14px] scrollbar-hide h-full bg-white rounded-lg w-[100%] flex flex-col items-center">
-            <div className="w-full h-[50px] flex flex-row px-5 sm:px-2  justify-between items-center ">
-              <div className=" h-[100%] flex justify-between items-center">
-                <div className="text-[#1e1e1e] text-[14px] sm:ml-4 font-semibold">
-                  Files uploaded
-                </div>
-              </div>
-              <div className="space-x-3 h-[100%] flex flex-row items-center justify-evenly">
-                <div
-                  onClick={() => setUploadPop(true)}
-                  className="p-2 sm:mr-5 flex flex-row rounded-xl cursor-pointer border-2 text-[12px] text-white bg-[#FFC248] border-[#FFC248] justify-evenly items-center font-semibold"
-                >
-                  <CloudUpload size={15} />
-                  <div className=" mx-2 pn:max-sm:hidden ">Upload</div>
-                </div>
-              </div>
-            </div>
-
-          
-            <div className="flex flex-row pn:max-sm:hidden w-[100%] h-[50px] items-center justify-evenly font-bold">
-              <div className="flex items-center sm:w-[30%] w-[60%] text-left ml-4">
-                File Name
-              </div>
-              <div className="flex items-center sm:w-[20%] w-[20%] text-left">
-                File Size
-              </div>
-              <div className="flex items-center sm:w-[20%] w-[20%] text-left">
-                Date Uploaded
-              </div>
-              <div className="flex items-center sm:w-[20%] w-[20%] text-left">
-                Uploaded By
-              </div>
-              <div className="flex items-center sm:w-[10%] w-[20%] text-left ">
-                Actions
-              </div>
-            </div>
-
-            {loading ? (
-                <div className="space-y-4 h-full w-full px-3 pb-3">
-                {[...Array(5)].map((_, index) => (
-                  <div
-                    key={index}
-                    className="w-full h-[50px] flex items-center justify-evenly animate-pulse bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 rounded-md"
-                  >
-                    <div className="sm:w-[30%] w-[60%] h-8 bg-gray-300 rounded-md"></div>
-                    <div className="sm:w-[20%] w-[20%] h-8 bg-gray-300 rounded-md"></div>
-                    <div className="sm:w-[20%] w-[20%] h-8 bg-gray-300 rounded-md"></div>
-                    <div className="sm:w-[20%] w-[20%] h-8 bg-gray-300 rounded-md"></div>
-                    <div className="sm:w-[10%] w-[20%] h-8 bg-gray-300 rounded-md"></div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <>
-                {filteredStorage.length > 0 ? (
-                  <>
-                    {filteredStorage.map((item, index) => (
-                      <div
-                        key={index}
-                        className={`flex flex-row  ${
-                          index % 2 === 0 ? "bg-[#EAECF0]" : "bg-white"
-                        } justify-evenly items-center w-full border-b-[1px] border-gray-200 h-[70px] text-center text-[#1E1E1E] `}
-                      >
-                        <div className="sm:w-[30%] w-[60%] text-left ml-4">
-                          {truncatetext(item.filename || "", 20)}
-                        </div>
-                        <div className="sm:w-[20%] w-[20%] text-left">
-                          {convertFromBytes(item.size)}
-                        </div>
-                        <div className="sm:w-[20%] w-[20%] text-left">
-                          {formatDate(item.date || "")}
-                        </div>
-                        <div className="sm:w-[20%] md:mr-5 w-[20%] text-left">
-                          <div className="flex items-center gap-3">
-                            <div className="w-[40px] h-[40px] overflow-hidden">
-                              <Image
-                                className="w-full h-full cursor-pointer object-cover shadow-sm rounded-full"
-                                src={
-                                  item.userid.profilepic
-                                    ? item.userid.profilepic
-                                    : ""
-                                }
-                                alt={
-                                  item.userid.fullname
-                                    ? item.userid.fullname
-                                    : ""
-                                }
-                                width={40}
-                                height={40}
-                              />
-                            </div>
-
-                            <div className="space-y-0.5">
-                              <div className="text-sm font-semibold">
-                                {item.userid.fullname}
-                              </div>
-
-                              <p className="text-xs font-medium text-muted-foreground">
-                                {item.userid.email}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="sm:w-[10%] w-[20%] text-left">
-                          <div className="flex flex-row gap-1 sm:gap-3 text-left ">
-                            <MdDeleteOutline className="text-[18px] cursor-pointer text-[#F13E3E]" />
-
-                            <div className="text-[18px] cursor-pointer text-blue-600">
-                              <HiDownload />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    <div className="flex justify-center items-center w-full h-[300px] ">
-                      <div className="text-[#1e1e1e] text-[14px] font-semibold">
-                        No files uploaded yet
-                      </div>
-                    </div>
-                  </>
-                )}
-              </>
-            )}
-          </div> */}
 
           <div className=" mt-2 text-[#5A5A5A] text-[14px] scrollbar-hide h-full bg-white rounded-lg w-[100%] flex flex-col items-center">
             <div className="w-full flex flex-row px-5 border-b py-3 sm:px-2 justify-between items-center ">
@@ -492,12 +430,16 @@ function page() {
                     <th className="px-4 py-2 text-left text-sm font-semibold text-[#1E1E1E]">
                       File Size
                     </th>
+
                     <th className="px-4 py-2 text-left text-sm font-semibold text-[#1E1E1E]">
                       Date Uploaded
                     </th>
-                    <th className="px-4 py-2 text-left text-sm font-semibold text-[#1E1E1E]">
-                      Uploaded By
-                    </th>
+
+                    {!isIndividual && (
+                      <th className="px-4 py-2 text-left text-sm font-semibold text-[#1E1E1E]">
+                        Uploaded By
+                      </th>
+                    )}
                     <th className="px-4 py-2 text-left text-sm font-semibold text-[#1E1E1E]">
                       Actions
                     </th>
@@ -511,11 +453,8 @@ function page() {
                           <td
                             colSpan={5}
                             className="px-4 py-3 animate-pulse bg-gray-200 rounded-xl text-center h-[60px] text-[#1e1e1e] text-[14px] font-semibold"
-                          >
-                            {/* Content here */}
-                          </td>
+                          ></td>
                         </tr>
-                        {/* Add more rows as needed */}
                       </>
                     ))
                   ) : filteredStorage.length > 0 ? (
@@ -535,21 +474,23 @@ function page() {
                         <td className="px-4 py-3 text-left">
                           {formatDate(item.date || "")}
                         </td>
-                        <td className="px-4 py-3 text-left">
-                          <UserProfile
-                            userName={
-                              item.userid.fullname ? item.userid.fullname : ""
-                            }
-                            userPic={
-                              item.userid.profilepic
-                                ? item.userid.profilepic
-                                : ""
-                            }
-                            paraText={
-                              item.userid.email ? item.userid.email : ""
-                            }
-                          />
-                        </td>
+                        {!isIndividual && (
+                          <td className="px-4 py-3 text-left">
+                            <UserProfile
+                              userName={
+                                item.userid.fullname ? item.userid.fullname : ""
+                              }
+                              userPic={
+                                item.userid.profilepic
+                                  ? item.userid.profilepic
+                                  : ""
+                              }
+                              paraText={
+                                item.userid.email ? item.userid.email : ""
+                              }
+                            />
+                          </td>
+                        )}
                         <td className="px-4 py-3 text-left">
                           <div className="flex gap-2 text-left">
                             <MdDeleteOutline

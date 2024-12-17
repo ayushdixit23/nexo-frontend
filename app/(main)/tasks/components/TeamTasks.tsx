@@ -54,7 +54,7 @@ const TeamTasks = ({
           ) : (
             <>
               {teams.length === 0 ? (
-                <div className="flex bg-red-700 justify-center items-center h-full">
+                <div className="flex justify-center items-center h-full">
                   <NoComponent text="No Team found" src={src} />
                 </div>
               ) : (
