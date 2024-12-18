@@ -68,7 +68,6 @@ const page = () => {
       if (res.data.success) {
         const groupedMessages = groupMessagesByDate(res.data.data);
         setMessages(groupedMessages);
-
         setTeamData(res.data.team);
       }
     } catch (error) {
@@ -135,7 +134,6 @@ const page = () => {
     socket?.emit("join-room", params?.id);
     if (socket) {
       socket?.on("receive-message", (data) => {
-        console.log(data, "received");
 
         // Group the received message by its date
         const groupedMessage = groupMessagesByDate([data]);

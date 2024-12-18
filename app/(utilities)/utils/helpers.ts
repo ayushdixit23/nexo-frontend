@@ -2,7 +2,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 export const errorHandler = (error: Error | any) => {
-  console.log(error);
+  // console.log(error);
   if (axios.isAxiosError(error)) {
     if (error.response) {
       toast.error(error.response.data.message || "Something went wrong");
@@ -19,16 +19,6 @@ export const errorHandler = (error: Error | any) => {
 export const truncatetext = (text: string, limit: number) => {
   return text.length <= limit ? text : text.slice(0, limit) + "...";
 };
-
-// export const formatDate = (date: Date): string => {
-//   const options = {
-//     day: "2-digit",
-//     month: "short",
-//     year: "numeric",
-//   };
-
-//   return new Date(date).toLocaleDateString("en-GB", options); // 'en-GB' gives us day month year format
-// };
 
 export const formatDate = (date: Date): string => {
   const options: Intl.DateTimeFormatOptions = {

@@ -1,14 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import { useAuthContext } from "@/app/(utilities)/utils/auth";
 import { errorHandler } from "@/app/(utilities)/utils/helpers";
 import axios from "axios";
 import { API } from "@/app/(utilities)/utils/config";
 import toast from "react-hot-toast";
-import { RxCross2 } from "react-icons/rx";
-import { IoMdAdd } from "react-icons/io";
-import { IoRemoveSharp } from "react-icons/io5";
 import Members from "./components/Members";
 import TeamList from "./components/TeamList";
 import CreateTeam from "./components/CreateTeam";

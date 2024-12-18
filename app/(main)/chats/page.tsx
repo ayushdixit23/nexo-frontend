@@ -40,7 +40,6 @@ const page = () => {
       );
       if (res.data.success) {
         setUsers(res.data.data);
-        console.log(res.data);
       }
     } catch (error) {
       errorHandler(error);

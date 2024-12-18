@@ -28,9 +28,7 @@ const TeamList = ({
       <div className="flex justify-between p-4 border-b items-center w-full">
         <div className="font-semibold text-[17px]">Teams List</div>
         <div className="flex justify-center items-center gap-4">
-          {/* <div className="border border-[#EAEEF4] p-2 rounded-full">
-          <RiSearch2Line />
-        </div> */}
+         
           <div className="flex justify-center items-center gap-1">
             <button
               onClick={() => setTeamPopUp(true)}

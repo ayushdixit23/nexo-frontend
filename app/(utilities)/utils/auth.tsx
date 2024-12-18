@@ -61,14 +61,11 @@ export const AuthContextProvider = ({
     router.push("/login");
   };
 
-  console.log(data, "data", auth, "auth", isIndividual, "isIndividual");
-
   const sendTokenAndVerify = async () => {
     try {
       const token = Cookies.get("token");
 
       if (!token) {
-        console.log("No token found in cookies.");
         return;
       }
       setLoading(true);

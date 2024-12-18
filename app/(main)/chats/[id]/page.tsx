@@ -130,8 +130,6 @@ const page = () => {
   useEffect(() => {
     if (socket) {
       socket?.on("receive-message", (data) => {
-        console.log(data, "received");
-
         // Group the received message by its date
         const groupedMessage = groupMessagesByDate([data]);
 

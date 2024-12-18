@@ -59,8 +59,6 @@ const page = () => {
     }
   };
 
-  console.log(teams);
-
   useEffect(() => {
     if (data?.id) {
       fetchTeams();

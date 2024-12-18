@@ -5,7 +5,6 @@ import {
   updateStatusTask,
   updateStatusTeamTask,
 } from "@/app/redux/slices/tasksSlice";
-import Image from "next/image";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Bolt, ChevronDown, CopyPlus, Layers2 } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { FaBolt, FaCheck, FaClock } from "react-icons/fa";
 import axios from "axios";
 import { useAuthContext } from "@/app/(utilities)/utils/auth";

@@ -39,7 +39,6 @@ export const SocketContextProvider: React.FC<SocketContextProviderProps> = ({
     let newSocket: Socket | null = null;
 
     if (AUTH && data?.id) {
-      // Ensure `data?.id` is available before connecting
       const url = "http://192.168.1.19:7777/";
       newSocket = io(url, {
         auth: { id: data?.id }, // Pass authentication info

@@ -310,8 +310,7 @@ function page() {
   const handleDownloadFile = async (id: string, key: string) => {
     try {
       const response = await axios.get(`${API}/generate-download-url/${id}`);
-
-      console.log(response.data);
+      
       const downloadUrl = response.data.downloadUrl;
 
       // Trigger the download by creating an anchor tag and clicking it
