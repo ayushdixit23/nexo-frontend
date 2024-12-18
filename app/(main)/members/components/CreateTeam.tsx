@@ -4,7 +4,7 @@ const CreateTeam = ({
   setTeamPopUp,
   isCreating,
   handleCreateTeam,
-}: {
+}:{
   setTeamPopUp: React.Dispatch<React.SetStateAction<boolean>>;
   isCreating: boolean;
   handleCreateTeam: (e: React.FormEvent) => Promise<void>;

@@ -8,7 +8,7 @@ const Membership = ({setIsOpen}:{setIsOpen:React.Dispatch<React.SetStateAction<b
             <div className="fixed inset-0 w-screen z-40 flex justify-center h-screen bg-black/50 items-center backdrop:blur-md">
                 <div className="md:w-[67%] w-[80%] flex-col h-[80%] md:h-auto p-5 flex rounded-lg bg-white justify-center items-center">
                     <div className="flex justify-end items-end w-full">
-                        <div className="flex justify-end items-end">
+                        <div className="flex justify-end cursor-pointer items-end">
                             <RxCross2 onClick={()=>setIsOpen(false)} className="text-2xl"/>
                         </div>
                     </div>

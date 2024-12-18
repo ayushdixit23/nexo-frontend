@@ -37,6 +37,28 @@ interface Teams {
   }[];
 }
 
+interface SelectedTeam {
+  id: string;
+  name: string;
+  members: {
+    fullname: string;
+    profilepic: string;
+    id: string;
+  }[];
+  creator:
+    | {
+        fullname: string | undefined;
+        profilepic: string | undefined;
+        id: string | undefined;
+      }
+    | {};
+}
+
+interface Operation {
+  addMembers: string[];
+  removeMembers: string[];
+}
+
 const page = () => {
   const { data } = useAuthContext();
   const [teamPopUp, setTeamPopUp] = useState(false);
@@ -46,14 +68,14 @@ const page = () => {
   const [teamName, setTeamName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [addMembersPopup, setAddMembersPopup] = useState(false);
-  const [selectedTeam, setSelectedTeam] = useState({
+  const [selectedTeam, setSelectedTeam] = useState<SelectedTeam>({
     id: "",
     name: "",
     members: [],
     creator: {},
   });
   const [isCreating, setIsCreating] = useState(false);
-  const [operation, setOperation] = useState({
+  const [operation, setOperation] = useState<Operation>({
     addMembers: [],
     removeMembers: [],
   });
@@ -126,7 +148,10 @@ const page = () => {
   }, [data?.organisationId]);
 
   // Toggle function for adding/removing members
-  const handleMemberClick = (memberId, isJoined) => {
+  const handleMemberClick = (
+    memberId: string,
+    isJoined: boolean | undefined
+  ) => {
     const updatedMembers = selectedTeam.members.map((member) => {
       if (member.id === memberId) {
         return { ...member, isJoined };

@@ -82,6 +82,11 @@ const page = () => {
           {teams.length > 0 ? (
             <>
               {teams?.map((team, index) => {
+                const paraText =
+                  typeof team?.lastMessage === "object" &&
+                  team?.lastMessage !== null
+                    ? team?.lastMessage.message || "Start a conversation"
+                    : "Start a conversation";
                 return (
                   <Link
                     href={`/chats/teams/${team?.id}`}
@@ -101,9 +106,7 @@ const page = () => {
                         <div className="text-sm font-semibold">{team.name}</div>
 
                         <p className="text-xs font-medium text-muted-foreground">
-                          {team.lastMessage?.message
-                            ? team.lastMessage?.message
-                            : "Start a conversation"}
+                          {paraText}
                         </p>
                       </div>
                     </div>

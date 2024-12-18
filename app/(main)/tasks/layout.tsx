@@ -33,7 +33,7 @@ export default function TasksLayout({
   const [task, setTask] = useState("");
   const [teamTasks, setTeamTasks] = useState(false);
   const dispatch = useDispatch();
-  const [selectedTeams, setSelectedTeams] = useState([]);
+  const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const { teams } = useSelector((state: RootState) => state.tasks);
 
   const sendIndividualTask = async () => {
@@ -55,6 +55,7 @@ export default function TasksLayout({
         status: "pending",
         temporary: true,
         assignedTeams: [],
+        type: "self",
       };
       dispatch(addTask(taskData));
       const res = await axios.post(`${API}/createIndividualTask/${data?.id}`, {
@@ -105,6 +106,7 @@ export default function TasksLayout({
         status: "pending",
         temporary: true,
         assignedTeams: selectedTeams,
+        type: "team",
       };
       dispatch(addTeamTask(taskData));
       const res = await axios.post(

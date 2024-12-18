@@ -15,8 +15,8 @@ export interface Task {
     email: string;
   };
   status: string;
-  assignedTeams?: [];
-  type: "team" | "self";
+  assignedTeams: string[] | [];
+  type: string;
 }
 
 export interface Team {

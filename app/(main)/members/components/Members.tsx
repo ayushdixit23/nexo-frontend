@@ -17,9 +17,6 @@ const Members = ({ members }: { members: any }) => {
       <div className="flex justify-between p-4 border-b items-center w-full">
         <div className="font-semibold text-[17px]">Members List</div>
         <div className="flex justify-center items-center gap-4">
-          {/* <div className="border border-[#EAEEF4] p-2 rounded-full">
-                <RiSearch2Line />
-              </div> */}
           <div className="flex justify-center items-center gap-1">
             <button className="flex justify-center items-center gap-1 text-white text-xs sm:text-sm p-2 px-4 rounded-[10px] bg-[#FFC248]">
               <BsPlus className="text-xl" />

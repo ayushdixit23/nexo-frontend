@@ -20,8 +20,18 @@ export const truncatetext = (text: string, limit: number) => {
   return text.length <= limit ? text : text.slice(0, limit) + "...";
 };
 
+// export const formatDate = (date: Date): string => {
+//   const options = {
+//     day: "2-digit",
+//     month: "short",
+//     year: "numeric",
+//   };
+
+//   return new Date(date).toLocaleDateString("en-GB", options); // 'en-GB' gives us day month year format
+// };
+
 export const formatDate = (date: Date): string => {
-  const options = {
+  const options: Intl.DateTimeFormatOptions = {
     day: "2-digit",
     month: "short",
     year: "numeric",

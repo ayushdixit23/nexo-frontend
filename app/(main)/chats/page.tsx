@@ -80,8 +80,9 @@ const page = () => {
                       userName={d?.user.fullname ? d?.user.fullname : ""}
                       userPic={d?.user.profilepic ? d?.user.profilepic : ""}
                       paraText={
-                        d?.lastMessage.message
-                          ? d?.lastMessage.message
+                        typeof d?.lastMessage === "object" &&
+                        d?.lastMessage !== null
+                          ? d?.lastMessage.message || "Start a conversation"
                           : "Start a conversation"
                       }
                     />
