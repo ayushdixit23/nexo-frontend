@@ -1,12 +1,73 @@
 import React from "react";
 import Hover from "./Hover";
 import { RxCross2 } from "react-icons/rx";
+import axios from "axios";
+import { API } from "../(utilities)/utils/config";
+import { useAuthContext } from "../(utilities)/utils/auth";
+import { RazorpayOrderOptions, useRazorpay } from "react-razorpay";
 
 const Membership = ({
   setIsOpen,
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+  const { data } = useAuthContext();
+  const { Razorpay } = useRazorpay();
+  const handlePurchase = async (amount: number) => {
+    try {
+      const res = await axios.post(`${API}/create-order/${data?.id}`, {
+        amount,
+      });
+      if (res.data.success) {
+        const options: RazorpayOrderOptions = {
+          key: "YOUR_RAZORPAY_KEY",
+          amount: amount * 100, // Amount in paise
+          currency: "INR",
+          name: "Test Company",
+          description: "Test Transaction",
+          order_id: "order_9A33XWu170gUtm", // Generate order_id on server
+          handler: async (response) => {
+            const {
+              razorpay_payment_id,
+              razorpay_order_id,
+              razorpay_signature,
+            } = response;
+
+            // Verify payment on the backend
+            const verify = await axios.post(`${API}/verify-signature`, {
+              razorpay_order_id,
+              razorpay_payment_id,
+              razorpay_signature,
+            });
+
+            if (verify.data.success) {
+              alert("Payment Successful!");
+            } else {
+              alert("Payment verification failed!");
+            }
+          },
+          prefill: {
+            name: data?.fullname,
+            email: data?.email,
+          },
+          theme: {
+            color: "#F37254",
+          },
+        };
+
+        const razorpayInstance = new Razorpay(options);
+        razorpayInstance.on("payment.failed", function (response) {
+          console.log(response);
+          alert("This step of Payment Failed");
+        });
+
+        razorpayInstance.open();
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <>
       <div className="fixed inset-0 w-screen z-40 flex justify-center h-screen bg-black/50 items-center backdrop:blur-md">
@@ -200,7 +261,10 @@ const Membership = ({
                           </div>
 
                           <div className="w-full flex mt-3 ">
-                            <div className="p-2 px-6 bg-white text-black text-xs font-medium rounded-3xl border">
+                            <div
+                              onClick={() => handlePurchase(500)}
+                              className="p-2 px-6 bg-white text-black text-xs font-medium rounded-3xl border"
+                            >
                               Choose Plan
                             </div>
                           </div>
@@ -293,7 +357,10 @@ const Membership = ({
                           </div>
 
                           <div className="w-full flex mt-3 ">
-                            <div className="p-2 px-6 text-xs font-medium rounded-3xl border">
+                            <div
+                              onClick={() => handlePurchase(1000)}
+                              className="p-2 px-6 text-xs font-medium rounded-3xl border"
+                            >
                               Choose Plan
                             </div>
                           </div>

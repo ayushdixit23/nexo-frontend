@@ -104,6 +104,7 @@ const page = () => {
       }
     } catch (error) {
       errorHandler(error);
+      setIsLoading(false);
     } finally {
       timer = setTimeout(() => {
         setIsLoading(false);
