@@ -13,19 +13,21 @@ const Membership = ({
 }) => {
   const { data } = useAuthContext();
   const { Razorpay } = useRazorpay();
+  
   const handlePurchase = async (amount: number) => {
     try {
       const res = await axios.post(`${API}/create-order/${data?.id}`, {
-        amount,
+        amount: amount * 100,
       });
+      const { order } = res.data;
       if (res.data.success) {
         const options: RazorpayOrderOptions = {
-          key: "YOUR_RAZORPAY_KEY",
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY || "",
           amount: amount * 100, // Amount in paise
           currency: "INR",
-          name: "Test Company",
+          name: "Synchronas",
           description: "Test Transaction",
-          order_id: "order_9A33XWu170gUtm", // Generate order_id on server
+          order_id: order.id, // Generate order_id on server
           handler: async (response) => {
             const {
               razorpay_payment_id,

@@ -39,7 +39,7 @@ export const SocketContextProvider: React.FC<SocketContextProviderProps> = ({
     let newSocket: Socket | null = null;
 
     if (AUTH && data?.id) {
-      const url = "http://192.168.1.19:7777/";
+      const url = "https://synchronas.nexoo.site/";
       newSocket = io(url, {
         auth: { id: data?.id }, // Pass authentication info
         reconnectionAttempts: 100,
